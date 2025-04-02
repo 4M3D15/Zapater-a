@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:zapato/modelos/cart_model.dart';
+import '../proveedores/cart_provider.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Map<String, dynamic> producto;
 
-  ProductDetailScreen({required this.producto});
+  const ProductDetailScreen({Key? key, required this.producto}) : super(key: key);
 
   @override
   _ProductDetailScreenState createState() => _ProductDetailScreenState();
@@ -18,86 +21,99 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(widget.producto["nombre"]),
         centerTitle: true,
         actions: [
-          IconButton(icon: Icon(Icons.favorite_border), onPressed: () {}),
-          IconButton(icon: Icon(Icons.shopping_cart), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () {
+              Navigator.pushNamed(context, '/cart'); // ✅ Redirige al carrito
+            },
+          ),
         ],
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(widget.producto["imagen"], height: 200), // Imagen principal
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(widget.producto["imagen"], height: 50),
-                SizedBox(width: 10),
-                Image.asset(widget.producto["imagen"], height: 50),
-                SizedBox(width: 10),
-                Image.asset(widget.producto["imagen"], height: 50),
-              ],
-            ),
-            SizedBox(height: 10),
-            Text(widget.producto["nombre"], style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            Text("\$${widget.producto["precio"]}", style: TextStyle(fontSize: 18, color: Colors.green)),
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Image.asset(widget.producto["imagen"], height: 200, fit: BoxFit.cover),
+            const SizedBox(height: 10),
+            Text(widget.producto["nombre"], style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text("\$${widget.producto["precio"]}", style: const TextStyle(fontSize: 18, color: Colors.green)),
+            const SizedBox(height: 10),
+
+            // Selección de talla
+            const Text("Selecciona tu talla:", style: TextStyle(fontSize: 16)),
+            Wrap(
+              spacing: 8,
               children: ["One", "Two", "Three", "Four", "Five", "Six"]
-                  .map((talla) => Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
-                child: ChoiceChip(
-                  label: Text(talla),
-                  selected: tallaSeleccionada == talla,
-                  onSelected: (selected) {
-                    setState(() {
-                      tallaSeleccionada = talla;
-                    });
-                  },
-                ),
+                  .map((talla) => ChoiceChip(
+                label: Text(talla),
+                selected: tallaSeleccionada == talla,
+                onSelected: (selected) {
+                  setState(() {
+                    tallaSeleccionada = talla;
+                  });
+                },
               ))
                   .toList(),
             ),
-            SizedBox(height: 10),
-            Text("Existencia: Disponible", style: TextStyle(fontSize: 16)),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
+
+            // Cantidad
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: Icon(Icons.remove),
+                  icon: const Icon(Icons.remove),
                   onPressed: () {
                     if (cantidad > 1) {
-                      setState(() {
-                        cantidad--;
-                      });
+                      setState(() => cantidad--);
                     }
                   },
                 ),
-                Text("$cantidad", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text("$cantidad", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 IconButton(
-                  icon: Icon(Icons.add),
-                  onPressed: () {
-                    setState(() {
-                      cantidad++;
-                    });
-                  },
+                  icon: const Icon(Icons.add),
+                  onPressed: () => setState(() => cantidad++),
                 ),
               ],
             ),
-            SizedBox(height: 10),
-            ElevatedButton.icon(
-              onPressed: () {},
-              icon: Icon(Icons.shopping_cart),
-              label: Text("Agregar al carrito"),
-              style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(horizontal: 50, vertical: 12)),
+            const SizedBox(height: 10),
+
+            // Botón Agregar al carrito
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  final cart = Provider.of<CartProvider>(context, listen: false); // ✅ listen: false evita redibujar la pantalla
+                  cart.addToCart(CartItem(
+                    nombre: widget.producto["nombre"],
+                    imagen: widget.producto["imagen"],
+                    precio: (widget.producto["precio"] as num).toDouble(), // ✅ Asegura que el precio sea un `double`
+                    talla: tallaSeleccionada,
+                    cantidad: cantidad,
+                  ));
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text("Producto agregado al carrito"),
+                      action: SnackBarAction(
+                        label: "Ver carrito",
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/cart'); // ✅ Botón para ir al carrito
+                        },
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.shopping_cart),
+                label: const Text("Agregar al carrito"),
+              ),
             ),
           ],
         ),
