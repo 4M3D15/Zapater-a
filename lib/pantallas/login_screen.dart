@@ -13,6 +13,14 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[200], // Fondo uniforme con la app
+      appBar: AppBar(
+        title: Text("Iniciar Sesión", style: TextStyle(color: Colors.black)),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black),
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -23,9 +31,9 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  "Iniciar Sesión",
+                  "Bienvenido de nuevo",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 30),
 
@@ -36,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     labelText: "Correo Electrónico",
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    prefixIcon: Icon(Icons.email),
+                    prefixIcon: Icon(Icons.email, color: Colors.black54),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -54,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     labelText: "Contraseña",
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    prefixIcon: Icon(Icons.lock),
+                    prefixIcon: Icon(Icons.lock, color: Colors.black54),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -69,12 +77,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      // Si la validación es correcta, navega a la pantalla principal
                       Navigator.pushReplacementNamed(context, '/');
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -89,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: const Text(
                     "¿No tienes cuenta? Regístrate aquí",
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 16, color: Colors.black),
                   ),
                 ),
               ],

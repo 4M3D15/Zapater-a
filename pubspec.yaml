@@ -13,6 +13,8 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   provider: ^6.1.4  # Solo aquí
+  carousel_slider: ^5.0.0
+  flutter_typeahead: ^5.2.0
 
 dev_dependencies:
   flutter_test:
