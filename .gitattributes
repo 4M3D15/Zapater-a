@@ -1,1 +1,0 @@
-*.archivo_grande filter=lfs diff=lfs merge=lfs -text
