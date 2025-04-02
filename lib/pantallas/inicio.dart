@@ -6,8 +6,6 @@ import 'registro_screen.dart';
 import 'perfil_screen.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
-
-
 class InicioScreen extends StatefulWidget {
   @override
   _InicioScreenState createState() => _InicioScreenState();
@@ -23,9 +21,6 @@ class _InicioScreenState extends State<InicioScreen> {
     CartScreen(),
     PerfilScreen(),
   ];
-
-
-
 
   void _onItemTapped(int index) {
     setState(() {
