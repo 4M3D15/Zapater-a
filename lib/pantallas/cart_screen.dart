@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zapato/proveedores/cart_provider.dart';
 import 'package:provider/provider.dart';
+import 'pago_screen.dart'; // Asegúrate de importar el archivo de pago_screen.dart
 
 class CartScreen extends StatelessWidget {
   @override
@@ -119,9 +120,10 @@ class CartScreen extends StatelessWidget {
                       minimumSize: Size(double.infinity, 50),
                     ),
                     onPressed: () {
-                      cart.clearCart();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Compra realizada")),
+                      // Navegar a la pantalla de pago
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => PagoScreen()),
                       );
                     },
                     child: Text("Finalizar compra"),

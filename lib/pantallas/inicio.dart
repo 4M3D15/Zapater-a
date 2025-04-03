@@ -5,6 +5,7 @@ import 'login_screen.dart';
 import 'registro_screen.dart';
 import 'perfil_screen.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'favoritos_screen.dart';
 
 class InicioScreen extends StatefulWidget {
   @override
@@ -17,7 +18,7 @@ class _InicioScreenState extends State<InicioScreen> {
   final List<Widget> _screens = [
     InicioContent(),
     busquedascreen(), // ✅ Añadido para la pantalla de búsqueda
-    Placeholder(), // Favoritos (puedes implementarlo después)
+    FavoritosScreen(), // Favoritos (puedes implementarlo después)
     CartScreen(),
     PerfilScreen(),
   ];
@@ -131,8 +132,12 @@ class InicioContent extends StatelessWidget {
                               right: 8,
                               child: IconButton(
                                 icon: const Icon(Icons.favorite_border, color: Colors.red),
-                                onPressed: () {},
+                                onPressed: () {
+                                  FavoritosScreen.favoritos.add(producto);
+                                },
                               ),
+
+
                             ),
                           ],
                         ),
