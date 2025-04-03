@@ -46,19 +46,22 @@ class CartScreen extends StatelessWidget {
                               Text("Talla: ${item.talla}"),
                               Row(
                                 children: [
-                                  Text("Cant. "),
-                                  DropdownButton<int>(
-                                    value: item.cantidad,
-                                    items: [1, 2, 3, 4, 5]
-                                        .map((e) => DropdownMenuItem<int>(
-                                      value: e,
-                                      child: Text("$e"),
-                                    ))
-                                        .toList(),
-                                    onChanged: (value) {
-                                      if (value != null) {
-                                        cart.updateQuantity(item, value);
+                                  IconButton(
+                                    icon: Icon(Icons.remove, color: Colors.black),
+                                    onPressed: () {
+                                      if (item.cantidad > 1) {
+                                        cart.updateQuantity(item, item.cantidad - 1);
                                       }
+                                    },
+                                  ),
+                                  Text(
+                                    "${item.cantidad}",
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.add, color: Colors.black),
+                                    onPressed: () {
+                                      cart.updateQuantity(item, item.cantidad + 1);
                                     },
                                   ),
                                 ],
