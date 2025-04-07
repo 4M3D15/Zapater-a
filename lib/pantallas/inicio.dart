@@ -20,7 +20,7 @@ class _InicioScreenState extends State<InicioScreen> {
 
   final List<Widget> _screens = [
     const InicioContent(),
-    const busquedascreen(),
+    const BusquedaScreen(),
     FavoritosScreen(),
     CartScreen(),
     PerfilScreen(),

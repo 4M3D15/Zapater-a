@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:zapato/modelos/favoritos_model.dart';
 import 'package:zapato/widgets/animated_favorite_icon.dart';
 
-
-class busquedascreen extends StatefulWidget {
-  const busquedascreen({super.key});
+class BusquedaScreen extends StatefulWidget {
+  const BusquedaScreen({super.key});
 
   @override
   _BusquedaScreenState createState() => _BusquedaScreenState();
 }
 
-class _BusquedaScreenState extends State<busquedascreen> {
+class _BusquedaScreenState extends State<BusquedaScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> productos = [
     {"nombre": "Tenis Nike", "precio": 1200, "imagen": "assets/cortez.png"},
@@ -25,7 +26,7 @@ class _BusquedaScreenState extends State<busquedascreen> {
   @override
   void initState() {
     super.initState();
-    filteredProductos = productos;  // Inicialmente muestra todos los productos
+    filteredProductos = productos;
   }
 
   void _searchProducts() {
@@ -109,9 +110,16 @@ class _BusquedaScreenState extends State<busquedascreen> {
                               Positioned(
                                 top: 8,
                                 right: 8,
-                                child: IconButton(
-                                  icon: const Icon(Icons.favorite_border, color: Colors.red),
-                                  onPressed: () {},
+                                child: AnimatedFavoriteIcon(
+                                  esFavorito: Provider.of<FavoritosModel>(context).esFavorito(producto),
+                                  onTap: () {
+                                    final favoritosModel = Provider.of<FavoritosModel>(context, listen: false);
+                                    if (favoritosModel.esFavorito(producto)) {
+                                      favoritosModel.removerFavorito(producto);
+                                    } else {
+                                      favoritosModel.agregarFavorito(producto);
+                                    }
+                                  },
                                 ),
                               ),
                             ],

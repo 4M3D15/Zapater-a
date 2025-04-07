@@ -6,7 +6,9 @@ import 'pantallas/cart_screen.dart';
 import 'pantallas/product_detail_screen.dart';
 import 'pantallas/login_screen.dart';
 import 'pantallas/registro_screen.dart';
+import 'pantallas/favoritos_screen.dart'; // Importamos la pantalla de Favoritos
 import 'proveedores/cart_provider.dart';
+
 
 void main() {
   runApp(
@@ -33,6 +35,7 @@ class MyApp extends StatelessWidget {
         '/cart': (context) => CartScreen(),
         '/login': (context) => LoginScreen(),
         '/registro': (context) => RegistroScreen(),
+        '/favoritos': (context) => FavoritosScreen(), // Ruta para la pantalla de Favoritos
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/product') {
