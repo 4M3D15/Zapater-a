@@ -37,7 +37,7 @@ class ConfirmacionScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Confirmación de compra"),
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.white,
         centerTitle: true,
       ),
       body: Padding(

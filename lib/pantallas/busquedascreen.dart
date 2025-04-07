@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:zapato/widgets/animated_favorite_icon.dart';
+
 
 class busquedascreen extends StatefulWidget {
   const busquedascreen({super.key});
