@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zapato/proveedores/cart_provider.dart';
 import '../modelos/cart_model.dart';
-import 'envio_screen.dart'; // Asegúrate de tener esta pantalla creada
+import 'envio_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -126,23 +126,33 @@ class CartScreen extends StatelessWidget {
                       minimumSize: Size(double.infinity, 50),
                     ),
                     onPressed: () {
-                      // Guardar los productos como una lista de tipo List<CartItem>
-                      final List<CartItem> productos = List<CartItem>.from(cart.items);
-                      final total = cart.totalPrice;
-
-                      // Vaciar el carrito antes de navegar a EnvioScreen
-                      cart.clearCart();
-
-                      // Navegar a la pantalla de envío pasando los productos y el total
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EnvioScreen(
-                            productos: productos, // Pasa la lista de productos
-                            total: total,           // Pasa el total calculado
+                      if (cart.items.isEmpty) {
+                        // Si el carrito está vacío, mostramos un mensaje
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Por favor, agrega productos al carrito antes de finalizar la compra."),
+                            backgroundColor: Colors.red,
                           ),
-                        ),
-                      );
+                        );
+                      } else {
+                        // Guardar los productos como una lista de tipo List<CartItem>
+                        final List<CartItem> productos = List<CartItem>.from(cart.items);
+                        final total = cart.totalPrice;
+
+                        // Vaciar el carrito antes de navegar a EnvioScreen
+                        cart.clearCart();
+
+                        // Navegar a la pantalla de envío pasando los productos y el total
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EnvioScreen(
+                              productos: productos, // Pasa la lista de productos
+                              total: total,           // Pasa el total calculado
+                            ),
+                          ),
+                        );
+                      }
                     },
                     child: Text("Finalizar compra"),
                   ),

@@ -43,7 +43,7 @@ class CartProvider extends ChangeNotifier {
     int index = _items.indexOf(item);
     if (index != -1) {
       _items[index].cantidad++;
-      notifyListeners();
+      notifyListeners();  // Notificamos a la UI que la cantidad ha cambiado
     }
   }
 
@@ -52,7 +52,7 @@ class CartProvider extends ChangeNotifier {
     int index = _items.indexOf(item);
     if (index != -1 && _items[index].cantidad > 1) {
       _items[index].cantidad--;
-      notifyListeners();
+      notifyListeners();  // Notificamos a la UI que la cantidad ha cambiado
     }
   }
 
@@ -61,7 +61,7 @@ class CartProvider extends ChangeNotifier {
     int index = _items.indexOf(item);
     if (index != -1 && newQuantity > 0) {
       _items[index].cantidad = newQuantity;
-      notifyListeners();
+      notifyListeners();  // Notificamos a la UI que la cantidad ha cambiado
     }
   }
 }
