@@ -111,7 +111,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         TextField(
           controller: _comentarioController,
           decoration: const InputDecoration(
-            hintText: "Escribe un comentario",
+            hintText: "Escribe un comentarioo",
             border: OutlineInputBorder(),
           ),
         ),
