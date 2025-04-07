@@ -16,17 +16,13 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int cantidad = 1;
-  // Valor inicial para la talla
   String tallaSeleccionada = "23 cm";
-  // Lista de tallas en centímetros (puedes ajustar estos valores)
   final List<String> tallas = ["23 cm", "24 cm", "25 cm", "26 cm", "27 cm", "28 cm"];
 
-  // Datos de ejemplo para comentarios y reseñas
-  final List<Map<String, dynamic>> reseñas = [
-  {"usuario": "Juan", "comentario": "¡Producto excelente!", "rating": 5},
-  {"usuario": "María", "comentario": "Buena calidad, pero un poco caro.", "rating": 4},
-  {"usuario": "Carlos", "comentario": "Me encantó, superó mis expectativas.", "rating": 5},
-  ];
+  // Variables para reseñas dinámicas
+  final TextEditingController _comentarioController = TextEditingController();
+  int _calificacionSeleccionada = 0;
+  final List<Map<String, dynamic>> _resenas = [];
 
   void _mostrarSelectorTallas() {
     showModalBottomSheet(
@@ -65,7 +61,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildReseñasSection() {
+  void _agregarResena() {
+    if (_comentarioController.text.trim().isEmpty || _calificacionSeleccionada == 0) return;
+
+    setState(() {
+      _resenas.add({
+        "usuario": "Anónimo",
+        "comentario": _comentarioController.text.trim(),
+        "rating": _calificacionSeleccionada,
+      });
+      _comentarioController.clear();
+      _calificacionSeleccionada = 0;
+    });
+  }
+
+  Widget _buildResenasSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -75,31 +85,62 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: reseñas.length,
-          itemBuilder: (context, index) {
-            final reseña = reseñas[index];
-            return ListTile(
+        ..._resenas.map((resena) {
+          return ListTile(
             leading: CircleAvatar(
-            child: Text(reseña["usuario"][0]),
+              child: Text(resena["usuario"][0]),
             ),
-            title: Text(reseña["usuario"]),
-            subtitle: Text(reseña["comentario"]),
+            title: Text(resena["usuario"]),
+            subtitle: Text(resena["comentario"]),
             trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(
-            5,
-            (i) => Icon(
-            i < reseña["rating"] ? Icons.star : Icons.star_border,
-            color: Colors.amber,
-            size: 16,
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(
+                5,
+                    (i) => Icon(
+                  i < resena["rating"] ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                  size: 16,
+                ),
+              ),
             ),
+          );
+        }).toList(),
+        const SizedBox(height: 10),
+        const Text("Deja tu reseña:", style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 5),
+        TextField(
+          controller: _comentarioController,
+          decoration: const InputDecoration(
+            hintText: "Escribe un comentario",
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // SECCIÓN DE ESTRELLAS + BOTÓN (ahora con Wrap para evitar overflow)
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            const Text("Calificación: "),
+            ...List.generate(
+              5,
+                  (i) => IconButton(
+                icon: Icon(
+                  i < _calificacionSeleccionada ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                ),
+                onPressed: () => setState(() => _calificacionSeleccionada = i + 1),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
             ),
+            ElevatedButton(
+              onPressed: _agregarResena,
+              child: const Text("Agregar"),
             ),
-            );
-          },
+          ],
         ),
       ],
     );
@@ -157,13 +198,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               style: const TextStyle(fontSize: 18, color: Colors.green),
             ),
             const SizedBox(height: 10),
-            // Botón para seleccionar tallas
             ElevatedButton(
               onPressed: _mostrarSelectorTallas,
-              child: Text("Tallas: $tallaSeleccionada"),
+              child: Text("Talla: $tallaSeleccionada"),
             ),
             const SizedBox(height: 10),
-            // Selección de cantidad
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -186,7 +225,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ],
             ),
             const SizedBox(height: 10),
-            // Botón para agregar al carrito
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -217,8 +255,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            // Sección de comentarios y reseñas
-            _buildReseñasSection(),
+            _buildResenasSection(),
           ],
         ),
       ),
