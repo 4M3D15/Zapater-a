@@ -73,7 +73,7 @@ class InicioContent extends StatelessWidget {
     return Column(
       children: [
         AppBar(
-          title: const Text('Compras', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text('Compraas', style: TextStyle(fontWeight: FontWeight.bold)),
           centerTitle: true,
         ),
         Padding(
