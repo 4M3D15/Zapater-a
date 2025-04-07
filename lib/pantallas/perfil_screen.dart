@@ -3,6 +3,8 @@ import 'login_screen.dart';
 import 'registro_screen.dart';
 
 class PerfilScreen extends StatelessWidget {
+  const PerfilScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

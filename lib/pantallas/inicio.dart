@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'busquedascreen.dart'; // ✅ Asegúrate de que este archivo esté importado correctamente
-import 'cart_screen.dart';
-import 'login_screen.dart';
-import 'registro_screen.dart';
-import 'perfil_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:zapato/pantallas/cart_screen.dart';
+import 'package:zapato/pantallas/perfil_screen.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'favoritos_screen.dart';
+import 'package:zapato/pantallas/favoritos_screen.dart';
+import 'package:zapato/modelos/favoritos_model.dart';
+import 'package:zapato/pantallas/busquedascreen.dart';
+import '../widgets/animated_favorite_icon.dart'; // Asegúrate de tener este archivo
 
 class InicioScreen extends StatefulWidget {
+  const InicioScreen({super.key});
+
   @override
   _InicioScreenState createState() => _InicioScreenState();
 }
@@ -16,9 +19,9 @@ class _InicioScreenState extends State<InicioScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    InicioContent(),
-    busquedascreen(), // ✅ Añadido para la pantalla de búsqueda
-    FavoritosScreen(), // Favoritos (puedes implementarlo después)
+    const InicioContent(),
+    const busquedascreen(),
+    FavoritosScreen(),
     CartScreen(),
     PerfilScreen(),
   ];
@@ -33,7 +36,7 @@ class _InicioScreenState extends State<InicioScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AnimatedSwitcher(
-        duration: Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 300),
         child: _screens[_selectedIndex],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -54,7 +57,9 @@ class _InicioScreenState extends State<InicioScreen> {
 }
 
 class InicioContent extends StatelessWidget {
-  final List<Map<String, dynamic>> productos = [
+  const InicioContent({super.key});
+
+  final List<Map<String, dynamic>> productos = const [
     {"nombre": "Tenis Nike", "precio": 1200, "imagen": "assets/cortez.png"},
     {"nombre": "Adidas Sport", "precio": 1500, "imagen": "assets/YZ1.png"},
     {"nombre": "New Balance Casual", "precio": 1100, "imagen": "assets/55810NB.png"},
@@ -95,71 +100,79 @@ class InicioContent extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.all(10),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 0.8,
-            ),
-            itemCount: productos.length,
-            itemBuilder: (context, index) {
-              final producto = productos[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/product', arguments: producto);
-                },
-                child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                              child: Image.asset(
-                                producto["imagen"],
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                              ),
-                            ),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: IconButton(
-                                icon: const Icon(Icons.favorite_border, color: Colors.red),
-                                onPressed: () {
-                                  FavoritosScreen.favoritos.add(producto);
-                                },
-                              ),
-
-
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            Text(
-                              producto["nombre"],
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              "\$${producto["precio"]}",
-                              style: const TextStyle(color: Colors.green),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+          child: Consumer<FavoritosModel>(
+            builder: (context, favoritos, child) {
+              return GridView.builder(
+                padding: const EdgeInsets.all(10),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 0.8,
                 ),
+                itemCount: productos.length,
+                itemBuilder: (context, index) {
+                  final producto = productos[index];
+                  final isFavorito = favoritos.esFavorito(producto);
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/product', arguments: producto);
+                    },
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                                  child: Image.asset(
+                                    producto["imagen"],
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: AnimatedFavoriteIcon(
+                                    esFavorito: isFavorito,
+                                    onTap: () {
+                                      if (isFavorito) {
+                                        favoritos.removerFavorito(producto);
+                                      } else {
+                                        favoritos.agregarFavorito(producto);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                Text(
+                                  producto["nombre"],
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  "\$${producto["precio"]}",
+                                  style: const TextStyle(color: Colors.green),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),

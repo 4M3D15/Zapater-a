@@ -1,33 +1,44 @@
 import 'package:flutter/material.dart';
+import 'confirmacion_screen.dart';
+import 'package:zapato/modelos/cart_model.dart';
 
 class PagoScreen extends StatefulWidget {
+  final String direccion;
+  final List<CartItem> productos;
+  final double total;
+
+  const PagoScreen({super.key,
+    required this.direccion,
+    required this.productos,
+    required this.total,
+  });
+
   @override
   _PagoScreenState createState() => _PagoScreenState();
 }
 
 class _PagoScreenState extends State<PagoScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  // Controladores de los campos del formulario
   final TextEditingController _numeroTarjetaController = TextEditingController();
   final TextEditingController _fechaExpiracionController = TextEditingController();
   final TextEditingController _cvvController = TextEditingController();
 
-  // Variable para seleccionar el tipo de tarjeta
-  String _tipoTarjeta = 'debito'; // 'debito' o 'credito'
+  String _tipoTarjeta = 'debito';
 
-  // Método para validar y realizar el pago
   void _realizarPago() {
     if (_formKey.currentState?.validate() ?? false) {
-      // Si los datos son válidos, puedes realizar la acción de pago
-      // Aquí puedes agregar la lógica de procesamiento de pagos
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Pago realizado exitosamente")),
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ConfirmacionScreen(
+            direccion: widget.direccion,
+            metodoPago: "Método: ${_tipoTarjeta == 'debito' ? 'Débito' : 'Crédito'} - **** **** **** ${_numeroTarjetaController.text.substring(12)}",
+            tarjetaCompleta: "${_numeroTarjetaController.text} | Exp: ${_fechaExpiracionController.text} | CVV: ${_cvvController.text}",
+            productos: widget.productos,
+            total: widget.total,
+          ),
+        ),
       );
-
-      // Puedes redirigir a otra pantalla después del pago, por ejemplo:
-      // Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
@@ -43,9 +54,7 @@ class _PagoScreenState extends State<PagoScreen> {
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Selección del tipo de tarjeta (debito o credito)
               Row(
                 children: [
                   Expanded(
@@ -53,11 +62,7 @@ class _PagoScreenState extends State<PagoScreen> {
                       title: Text('Tarjeta de débito'),
                       value: 'debito',
                       groupValue: _tipoTarjeta,
-                      onChanged: (value) {
-                        setState(() {
-                          _tipoTarjeta = value!;
-                        });
-                      },
+                      onChanged: (value) => setState(() => _tipoTarjeta = value!),
                     ),
                   ),
                   Expanded(
@@ -65,95 +70,50 @@ class _PagoScreenState extends State<PagoScreen> {
                       title: Text('Tarjeta de crédito'),
                       value: 'credito',
                       groupValue: _tipoTarjeta,
-                      onChanged: (value) {
-                        setState(() {
-                          _tipoTarjeta = value!;
-                        });
-                      },
+                      onChanged: (value) => setState(() => _tipoTarjeta = value!),
                     ),
                   ),
                 ],
               ),
               SizedBox(height: 20),
-
-              // Número de tarjeta
-              TextFormField(
-                controller: _numeroTarjetaController,
-                decoration: InputDecoration(
-                  labelText: 'Número de tarjeta',
-                  prefixIcon: Icon(Icons.credit_card),
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese el número de tarjeta';
-                  }
-                  if (value.length != 16) {
-                    return 'El número de tarjeta debe tener 16 dígitos';
-                  }
-                  return null;
-                },
-              ),
+              _campoTexto(_numeroTarjetaController, "Número de tarjeta", Icons.credit_card, 16),
               SizedBox(height: 20),
-
-              // Fecha de expiración
-              TextFormField(
-                controller: _fechaExpiracionController,
-                decoration: InputDecoration(
-                  labelText: 'Fecha de expiración (MM/AA)',
-                  prefixIcon: Icon(Icons.date_range),
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese la fecha de expiración';
-                  }
-                  if (!RegExp(r'^(0[1-9]|1[0-2])\/([0-9]{2})$').hasMatch(value)) {
-                    return 'La fecha de expiración no es válida';
-                  }
-                  return null;
-                },
-              ),
+              _campoTexto(_fechaExpiracionController, "Fecha de expiración (MM/AA)", Icons.date_range, 5, r'^(0[1-9]|1[0-2])\/([0-9]{2})$'),
               SizedBox(height: 20),
-
-              // CVV
-              TextFormField(
-                controller: _cvvController,
-                decoration: InputDecoration(
-                  labelText: 'CVV',
-                  prefixIcon: Icon(Icons.lock),
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese el CVV';
-                  }
-                  if (value.length != 3) {
-                    return 'El CVV debe tener 3 dígitos';
-                  }
-                  return null;
-                },
-              ),
+              _campoTexto(_cvvController, "CVV", Icons.lock, 3, r'^\d{3}$', true),
               SizedBox(height: 30),
-
-              // Botón para realizar el pago
               ElevatedButton(
+                onPressed: _realizarPago,
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.black,
-                  padding: EdgeInsets.symmetric(vertical: 15),
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.black,
                   minimumSize: Size(double.infinity, 50),
                 ),
-                onPressed: _realizarPago,
                 child: Text("Realizar pago"),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _campoTexto(TextEditingController controller, String label, IconData icon, int length, [String? pattern, bool oculto = false]) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(),
+      ),
+      keyboardType: TextInputType.number,
+      obscureText: oculto,
+      validator: (value) {
+        if (value == null || value.isEmpty) return 'Campo obligatorio';
+        if (value.length != length) return 'Debe tener $length dígitos';
+        if (pattern != null && !RegExp(pattern).hasMatch(value)) return 'Formato inválido';
+        return null;
+      },
     );
   }
 }

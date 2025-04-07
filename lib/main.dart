@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:zapato/modelos/favoritos_model.dart'; // Importamos FavoritosModel
 import 'pantallas/inicio.dart';
 import 'pantallas/cart_screen.dart';
 import 'pantallas/product_detail_screen.dart';
-import 'pantallas/login_screen.dart';  // ✅ Importación correcta
-import 'pantallas/registro_screen.dart';  // ✅ Importación correcta
+import 'pantallas/login_screen.dart';
+import 'pantallas/registro_screen.dart';
 import 'proveedores/cart_provider.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => CartProvider()),
+        ChangeNotifierProvider(create: (context) => CartProvider()), // Proveedor del carrito
+        ChangeNotifierProvider(create: (context) => FavoritosModel()), // Proveedor de favoritos
       ],
       child: MyApp(),
     ),
@@ -19,6 +21,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -27,8 +31,8 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => InicioScreen(),
         '/cart': (context) => CartScreen(),
-        '/login': (context) => LoginScreen(),  // ✅ Verifica que esté importado correctamente
-        '/registro': (context) => RegistroScreen(),  // ✅ Verifica que esté importado correctamente
+        '/login': (context) => LoginScreen(),
+        '/registro': (context) => RegistroScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/product') {

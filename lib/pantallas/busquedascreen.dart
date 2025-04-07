@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 class busquedascreen extends StatefulWidget {
+  const busquedascreen({super.key});
+
   @override
   _BusquedaScreenState createState() => _BusquedaScreenState();
 }
 
 class _BusquedaScreenState extends State<busquedascreen> {
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> productos = [
     {"nombre": "Tenis Nike", "precio": 1200, "imagen": "assets/cortez.png"},
     {"nombre": "Adidas Sport", "precio": 1500, "imagen": "assets/YZ1.png"},

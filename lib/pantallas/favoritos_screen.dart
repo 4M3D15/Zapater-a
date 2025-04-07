@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:provider/provider.dart';
+import 'package:zapato/modelos/favoritos_model.dart';
+import 'package:zapato/widgets/animated_favorite_icon.dart'; // Importa el widget AnimatedFavoriteIcon
 
-class FavoritosScreen extends StatefulWidget {
-  static List<Map<String, dynamic>> favoritos = [];
-
+class FavoritosScreen extends StatelessWidget {
   final List<Map<String, dynamic>> sugeridos = [
     {"nombre": "Tenis Nike", "precio": 1200, "imagen": "assets/cortez.png"},
     {"nombre": "Adidas Sport", "precio": 1500, "imagen": "assets/YZ1.png"},
@@ -14,66 +15,65 @@ class FavoritosScreen extends StatefulWidget {
   ];
 
   @override
-  _FavoritosScreenState createState() => _FavoritosScreenState();
-}
-
-class _FavoritosScreenState extends State<FavoritosScreen> {
-  void _agregarAFavoritos(Map<String, dynamic> producto) {
-    if (!FavoritosScreen.favoritos.contains(producto)) {
-      setState(() {
-        FavoritosScreen.favoritos.add(producto);
-      });
-
-      // Mostrar el Snackbar cuando se agrega el producto a favoritos
-      _mostrarSnackbar("Producto agregado a favoritos");
-    }
-  }
-
-  void _removerDeFavoritos(Map<String, dynamic> producto) {
-    setState(() {
-      FavoritosScreen.favoritos.remove(producto);
-    });
-  }
-
-  void _mostrarSnackbar(String mensaje) {
-    final snackBar = SnackBar(
-      content: Text(mensaje),
-      duration: Duration(seconds: 2), // Duración del Snackbar (2 segundos)
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar); // Muestra el Snackbar
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Favoritos")),
+      appBar: AppBar(
+        title: Text("Favoritos"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.delete_forever),
+            onPressed: () {
+              // Vaciar la lista de favoritos
+              Provider.of<FavoritosModel>(context, listen: false).vaciarFavoritos();
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
-          // Lista de favoritos con Flexible para que no empuje el carrusel
           Expanded(
-            child: FavoritosScreen.favoritos.isEmpty
-                ? Center(child: Text("No tienes favoritos aún"))
-                : ListView.builder(
-              itemCount: FavoritosScreen.favoritos.length,
-              itemBuilder: (context, index) {
-                final producto = FavoritosScreen.favoritos[index];
-                return ListTile(
-                  leading: Image.asset(producto["imagen"], width: 50, height: 50),
-                  title: Text(producto["nombre"]),
-                  subtitle: Text("\$${producto["precio"]}"),
-                  trailing: IconButton(
-                    icon: Icon(Icons.favorite, color: Colors.red),
-                    onPressed: () {
-                      setState(() {
-                        FavoritosScreen.favoritos.removeAt(index);
-                      });
-                    },
-                  ),
+            child: Consumer<FavoritosModel>(
+              builder: (context, favoritosModel, child) {
+                final productosFavoritos = favoritosModel.favoritos;
+
+                if (productosFavoritos.isEmpty) {
+                  return Center(child: Text("No tienes favoritos aún"));
+                }
+
+                return ListView.builder(
+                  itemCount: productosFavoritos.length,
+                  itemBuilder: (context, index) {
+                    final producto = productosFavoritos[index];
+                    return Dismissible(
+                      key: Key(producto["nombre"]),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: EdgeInsets.only(right: 20),
+                        color: Colors.redAccent,
+                        child: Icon(Icons.delete, color: Colors.white),
+                      ),
+                      onDismissed: (_) {
+                        favoritosModel.removerFavorito(producto);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("${producto['nombre']} eliminado de favoritos")),
+                        );
+                      },
+                      child: ListTile(
+                        leading: Image.asset(producto["imagen"], width: 50, height: 50),
+                        title: Text(producto["nombre"]),
+                        subtitle: Text("\$${producto["precio"]}"),
+                        trailing: AnimatedFavoriteIcon(
+                          esFavorito: true, // Siempre será true en la lista de favoritos
+                          onTap: () => favoritosModel.removerFavorito(producto), // Eliminar favorito al tocar el corazón
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
           ),
-          // 🔥 "Sugerencias para ti" debe quedar abajo
           Padding(
             padding: EdgeInsets.symmetric(vertical: 5),
             child: Text(
@@ -81,54 +81,59 @@ class _FavoritosScreenState extends State<FavoritosScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
-          // 🔥 Carrusel con un tamaño adecuado
-          Container(
-            height: 180, // 🔥 Ajusté la altura del carrusel
+          SizedBox(
+            height: 180,
             child: CarouselSlider(
               options: CarouselOptions(
-                height: 180.0, // 🔥 Ajusté la altura interna para que coincida
+                height: 180.0,
                 autoPlay: true,
                 enlargeCenterPage: true,
               ),
-              items: widget.sugeridos.map((producto) {
-                bool isFavorito = FavoritosScreen.favoritos.contains(producto);
+              items: sugeridos.map((producto) {
                 return GestureDetector(
-                  onTap: () => isFavorito ? _removerDeFavoritos(producto) : _agregarAFavoritos(producto),
-                  child: Container(
-                    width: 350, // 🔥 Ancho ajustado a 350 píxeles
-                    margin: EdgeInsets.symmetric(horizontal: 5.0),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      image: DecorationImage(
-                        image: AssetImage(producto['imagen']),
-                        fit: BoxFit.cover, // 🔥 Ajuste de imagen para cubrir todo el espacio
-                      ),
-                    ),
-                    child: Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        icon: Icon(
-                          isFavorito ? Icons.favorite : Icons.favorite_border,
-                          color: Colors.red,
+                  onTap: () {
+                    final favoritosModel = Provider.of<FavoritosModel>(context, listen: false);
+                    if (favoritosModel.esFavorito(producto)) {
+                      favoritosModel.removerFavorito(producto);
+                    } else {
+                      favoritosModel.agregarFavorito(producto);
+                    }
+                  },
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 350,
+                        margin: EdgeInsets.symmetric(horizontal: 5.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          image: DecorationImage(
+                            image: AssetImage(producto['imagen']),
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            if (isFavorito) {
-                              FavoritosScreen.favoritos.remove(producto);
-                            } else {
-                              FavoritosScreen.favoritos.add(producto);
-                              _mostrarSnackbar("Producto agregado a favoritos"); // Mostrar Snackbar
-                            }
-                          });
-                        },
                       ),
-                    ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: AnimatedFavoriteIcon(
+                          esFavorito: Provider.of<FavoritosModel>(context).esFavorito(producto),
+                          onTap: () {
+                            final favoritosModel = Provider.of<FavoritosModel>(context, listen: false);
+                            if (favoritosModel.esFavorito(producto)) {
+                              favoritosModel.removerFavorito(producto);
+                            } else {
+                              favoritosModel.agregarFavorito(producto);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 );
               }).toList(),
             ),
           ),
-          SizedBox(height: 80), // 🔥 Un poco de espacio al final
+          SizedBox(height: 20),
         ],
       ),
     );
