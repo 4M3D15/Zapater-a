@@ -154,7 +154,7 @@ class CartScreen extends StatelessWidget {
                         );
                       }
                     },
-                    child: Text("Finalizar compra"),
+                    child: Text("Continuar compra"),
                   ),
                 ],
               ),
