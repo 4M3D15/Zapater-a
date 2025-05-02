@@ -1,33 +1,51 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../proveedores/cart_provider.dart';
+import 'package:zapato/modelos/productos_model.dart';
 
-class CartIcon extends StatelessWidget {
+class ProductCard extends StatelessWidget {
+  final Producto producto;
+
+  const ProductCard({Key? key, required this.producto}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<CartProvider>(
-      builder: (context, cart, child) {
-        return Stack(
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, '/product', arguments: producto);
+      },
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            IconButton(
-              icon: Icon(Icons.shopping_cart),
-              onPressed: () => Navigator.pushNamed(context, '/cart'),
-            ),
-            if (cart.items.isNotEmpty)
-              Positioned(
-                right: 0,
-                child: CircleAvatar(
-                  radius: 10,
-                  backgroundColor: Colors.red,
-                  child: Text(
-                    cart.items.length.toString(),
-                    style: TextStyle(fontSize: 12, color: Colors.white),
-                  ),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                child: Image.network(
+                  producto.imagen, // Usando imagen desde Firestore
+                  fit: BoxFit.cover,
+                  width: double.infinity,
                 ),
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Text(
+                    producto.nombre, // Usando nombre desde Firestore
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "\$${producto.precio}", // Usando precio desde Firestore
+                    style: const TextStyle(color: Colors.green),
+                  ),
+                ],
+              ),
+            ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }

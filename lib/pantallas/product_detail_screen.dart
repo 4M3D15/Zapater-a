@@ -183,10 +183,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(
+            Image.network(
               widget.producto["imagen"],
               height: 200,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100),
             ),
             const SizedBox(height: 10),
             Text(
