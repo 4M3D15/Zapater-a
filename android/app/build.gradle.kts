@@ -1,7 +1,7 @@
 android {
-    namespace = "com.example.zapato"
+    namespace = "com.example.temp_project"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -13,8 +13,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.zapato"
-        minSdkVersion = 23  // Cambiado para usar el signo de igual (=)
+        applicationId = "com.example.temp_project"
+        minSdk = 23  // Establece minSdkVersion explícitamente a 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -25,4 +25,8 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+}
+
+flutter {
+    source = "../.."
 }
