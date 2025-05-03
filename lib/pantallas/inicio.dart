@@ -5,40 +5,39 @@ import 'package:zapato/pantallas/cart_screen.dart';
 import 'package:zapato/pantallas/perfil_screen.dart';
 import 'package:zapato/pantallas/favoritos_screen.dart';
 import 'package:zapato/pantallas/busquedascreen.dart';
-import 'package:zapato/widgets/animated_favorite_icon.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-
-import 'inicio_content.dart'; // Importa carousel_slider
+import 'inicio_content.dart';
 
 class InicioScreen extends StatefulWidget {
   const InicioScreen({super.key});
 
   @override
-  _InicioScreenState createState() => _InicioScreenState();
+  State<InicioScreen> createState() => _InicioScreenState();
 }
 
 class _InicioScreenState extends State<InicioScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
+  static final List<Widget> _screens = <Widget>[
     const InicioContent(),
     const BusquedaScreen(),
     FavoritosScreen(),
-    CartScreen(),
-    PerfilScreen(),
+    const CartScreen(),
+    const PerfilScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Cargar productos después del primer frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ProductosModel>(context, listen: false).obtenerProductos();
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    // Cargar productos al iniciar la pantalla
-    Provider.of<ProductosModel>(context, listen: false).obtenerProductos();
   }
 
   @override

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zapato/modelos/cart_model.dart';
 import 'package:zapato/modelos/favoritos_model.dart';
+import 'package:zapato/modelos/productos_model.dart'; // Importa el modelo Producto
 import '../proveedores/cart_provider.dart';
 import '../widgets/animated_favorite_icon.dart';
 
 class ProductDetailScreen extends StatefulWidget {
-  final Map<String, dynamic> producto;
+  final Producto producto;
 
   const ProductDetailScreen({super.key, required this.producto});
 
@@ -19,7 +20,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String tallaSeleccionada = "23 cm";
   final List<String> tallas = ["23 cm", "24 cm", "25 cm", "26 cm", "27 cm", "28 cm"];
 
-  // Variables para reseñas dinámicas
   final TextEditingController _comentarioController = TextEditingController();
   int _calificacionSeleccionada = 0;
   final List<Map<String, dynamic>> _resenas = [];
@@ -33,10 +33,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                "Selecciona tu talla",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+              const Text("Selecciona tu talla", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 10,
@@ -46,9 +43,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     label: Text(talla),
                     selected: seleccionado,
                     onSelected: (selected) {
-                      setState(() {
-                        tallaSeleccionada = talla;
-                      });
+                      setState(() => tallaSeleccionada = talla);
                       Navigator.pop(context);
                     },
                   );
@@ -80,28 +75,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Divider(),
-        const Text(
-          "Reseñas",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+        const Text("Reseñas", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         ..._resenas.map((resena) {
           return ListTile(
-            leading: CircleAvatar(
-              child: Text(resena["usuario"][0]),
-            ),
+            leading: CircleAvatar(child: Text(resena["usuario"][0])),
             title: Text(resena["usuario"]),
             subtitle: Text(resena["comentario"]),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
-              children: List.generate(
-                5,
-                    (i) => Icon(
-                  i < resena["rating"] ? Icons.star : Icons.star_border,
-                  color: Colors.amber,
-                  size: 16,
-                ),
-              ),
+              children: List.generate(5, (i) => Icon(
+                i < resena["rating"] ? Icons.star : Icons.star_border,
+                color: Colors.amber, size: 16,
+              )),
             ),
           );
         }).toList(),
@@ -111,31 +97,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         TextField(
           controller: _comentarioController,
           decoration: const InputDecoration(
-            hintText: "Escribe un comentarioo",
+            hintText: "Escribe un comentario",
             border: OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 10),
-
-        // SECCIÓN DE ESTRELLAS + BOTÓN (ahora con Wrap para evitar overflow)
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 8,
           runSpacing: 8,
           children: [
             const Text("Calificación: "),
-            ...List.generate(
-              5,
-                  (i) => IconButton(
-                icon: Icon(
-                  i < _calificacionSeleccionada ? Icons.star : Icons.star_border,
-                  color: Colors.amber,
-                ),
-                onPressed: () => setState(() => _calificacionSeleccionada = i + 1),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+            ...List.generate(5, (i) => IconButton(
+              icon: Icon(
+                i < _calificacionSeleccionada ? Icons.star : Icons.star_border,
+                color: Colors.amber,
               ),
-            ),
+              onPressed: () => setState(() => _calificacionSeleccionada = i + 1),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            )),
             ElevatedButton(
               onPressed: _agregarResena,
               child: const Text("Agregar"),
@@ -149,32 +130,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final favoritosModel = Provider.of<FavoritosModel>(context);
-    final isFavorito = favoritosModel.esFavorito(widget.producto);
+    final isFavorito = favoritosModel.esFavorito(widget.producto); // ✅ Ya no usamos Map
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(widget.producto["nombre"]),
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
+        title: Text(widget.producto.nombre),
         centerTitle: true,
         actions: [
           AnimatedFavoriteIcon(
             esFavorito: isFavorito,
             onTap: () {
               if (isFavorito) {
-                favoritosModel.removerFavorito(widget.producto);
+                favoritosModel.removerFavorito(widget.producto); // ✅
               } else {
-                favoritosModel.agregarFavorito(widget.producto);
+                favoritosModel.agregarFavorito(widget.producto); // ✅
               }
             },
           ),
           IconButton(
             icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.pushNamed(context, '/cart');
-            },
+            onPressed: () => Navigator.pushNamed(context, '/cart'),
           ),
         ],
       ),
@@ -184,20 +160,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.network(
-              widget.producto["imagen"],
+              widget.producto.imagen,
               height: 200,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100),
             ),
             const SizedBox(height: 10),
-            Text(
-              widget.producto["nombre"],
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              "\$${widget.producto["precio"]}",
-              style: const TextStyle(fontSize: 18, color: Colors.green),
-            ),
+            Text(widget.producto.nombre, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text("\$${widget.producto.precio}", style: const TextStyle(fontSize: 18, color: Colors.green)),
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: _mostrarSelectorTallas,
@@ -207,22 +177,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.remove),
-                  onPressed: () {
-                    if (cantidad > 1) {
-                      setState(() => cantidad--);
-                    }
-                  },
-                ),
-                Text(
-                  "$cantidad",
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () => setState(() => cantidad++),
-                ),
+                IconButton(icon: const Icon(Icons.remove), onPressed: () {
+                  if (cantidad > 1) setState(() => cantidad--);
+                }),
+                Text("$cantidad", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                IconButton(icon: const Icon(Icons.add), onPressed: () => setState(() => cantidad++)),
               ],
             ),
             const SizedBox(height: 10),
@@ -232,21 +191,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 onPressed: () {
                   final cart = Provider.of<CartProvider>(context, listen: false);
                   cart.addToCart(CartItem(
-                    nombre: widget.producto["nombre"],
-                    imagen: widget.producto["imagen"],
-                    precio: (widget.producto["precio"] as num).toDouble(),
+                    nombre: widget.producto.nombre,
+                    imagen: widget.producto.imagen,
+                    precio: widget.producto.precio,
                     talla: tallaSeleccionada,
                     cantidad: cantidad,
                   ));
-
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: const Text("Producto agregado al carrito"),
                       action: SnackBarAction(
                         label: "Ver carrito",
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/cart');
-                        },
+                        onPressed: () => Navigator.pushNamed(context, '/cart'),
                       ),
                     ),
                   );

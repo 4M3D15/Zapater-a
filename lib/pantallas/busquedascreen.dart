@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zapato/modelos/favoritos_model.dart';
+import 'package:zapato/modelos/productos_model.dart';
 import 'package:zapato/widgets/animated_favorite_icon.dart';
 
 class BusquedaScreen extends StatefulWidget {
@@ -111,13 +112,13 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
                                 top: 8,
                                 right: 8,
                                 child: AnimatedFavoriteIcon(
-                                  esFavorito: Provider.of<FavoritosModel>(context).esFavorito(producto),
+                                  esFavorito: Provider.of<FavoritosModel>(context).esFavorito(producto as Producto),
                                   onTap: () {
                                     final favoritosModel = Provider.of<FavoritosModel>(context, listen: false);
-                                    if (favoritosModel.esFavorito(producto)) {
-                                      favoritosModel.removerFavorito(producto);
+                                    if (favoritosModel.esFavorito(producto as Producto)) {
+                                      favoritosModel.removerFavorito(producto as Producto);
                                     } else {
-                                      favoritosModel.agregarFavorito(producto);
+                                      favoritosModel.agregarFavorito(producto as Producto);
                                     }
                                   },
                                 ),
