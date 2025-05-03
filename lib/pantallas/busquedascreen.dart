@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zapato/modelos/favoritos_model.dart';
-import 'package:zapato/modelos/producto_model.dart'; // Importando producto_model.dart
+import 'package:zapato/modelos/producto_model.dart'; // Importando Producto correctamente
 import 'package:zapato/widgets/animated_favorite_icon.dart';
-
 import '../Servicios/firestore_service.dart';
 
 class BusquedaScreen extends StatefulWidget {
@@ -16,8 +15,8 @@ class BusquedaScreen extends StatefulWidget {
 class _BusquedaScreenState extends State<BusquedaScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FirestoreService _firestoreService = FirestoreService();
-  List<Producto> productos = [];
-  List<Producto> filteredProductos = [];
+  List<Producto> productos = []; // Lista de productos del tipo Producto
+  List<Producto> filteredProductos = []; // Lista filtrada de productos
 
   @override
   void initState() {
@@ -26,9 +25,10 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
   }
 
   Future<void> _loadProductos() async {
-    productos = await _firestoreService.obtenerProductos();
+    List<Producto> productosRecibidos = await _firestoreService.obtenerProductos();
     setState(() {
-      filteredProductos = productos;
+      productos = productosRecibidos; // Carga de productos desde Firestore
+      filteredProductos = productos; // Inicialización de la lista filtrada
     });
   }
 
@@ -36,6 +36,7 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
     String query = _searchController.text.toLowerCase();
     setState(() {
       filteredProductos = productos.where((producto) {
+        // Filtrando los productos por nombre
         return producto.nombre.toLowerCase().contains(query);
       }).toList();
     });
@@ -49,7 +50,7 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: Column(
         children: [
@@ -59,10 +60,10 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Busca tu producto...',
-                prefixIcon: Icon(Icons.search, color: Colors.black54),
+                prefixIcon: const Icon(Icons.search, color: Colors.black54),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.black54),
+                  borderSide: const BorderSide(color: Colors.black54),
                 ),
               ),
               onChanged: (value) {
@@ -72,7 +73,7 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
           ),
           Expanded(
             child: filteredProductos.isEmpty
-                ? Center(
+                ? const Center(
               child: Text(
                 'No se encontraron productos',
                 style: TextStyle(fontSize: 18, color: Colors.black),
@@ -104,11 +105,13 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
                             children: [
                               ClipRRect(
                                 borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                                child: Image.network(
+                                child: producto.imagen.isNotEmpty
+                                    ? Image.network(
                                   producto.imagen,
                                   fit: BoxFit.cover,
                                   width: double.infinity,
-                                ),
+                                )
+                                    : const Icon(Icons.image, size: 50, color: Colors.grey),
                               ),
                               Positioned(
                                 top: 8,

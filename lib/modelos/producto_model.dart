@@ -10,6 +10,7 @@ class Producto {
   final String talla;
   final String color;
 
+  // Constructor
   Producto({
     required this.nombre,
     required this.categoria,
@@ -41,15 +42,17 @@ class Producto {
     return placeholder;
   }
 
+  // Método específico para parsear la imagen
   static String _parseImagen(dynamic raw) {
     debugPrint('[_parseImagen] raw=$raw (${raw.runtimeType})');
     if (raw is String) return raw;
     if (raw is List && raw.isNotEmpty) return raw.first.toString();
-    return 'https://via.placeholder.com/150';
+    return 'https://via.placeholder.com/150'; // Imagen por defecto
   }
 
+  // Constructor para crear un Producto a partir de un documento de Firestore
   factory Producto.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data()!; // Accedemos al Map<String, dynamic>
+    final data = doc.data()!; // Accedemos al Map<String, dynamic> de Firestore
     debugPrint('🍀 Producto raw data: $data');
 
     return Producto(

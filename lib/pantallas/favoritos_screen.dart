@@ -11,11 +11,12 @@ class FavoritosScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Favoritos"),
+        title: const Text("Favoritos"),
         actions: [
           IconButton(
-            icon: Icon(Icons.delete_forever),
+            icon: const Icon(Icons.delete_forever),
             onPressed: () {
+              // Vaciamos la lista de favoritos
               Provider.of<FavoritosModel>(context, listen: false).vaciarFavoritos();
             },
           ),
@@ -23,15 +24,18 @@ class FavoritosScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
+          // Lista de productos favoritos
           Expanded(
             child: Consumer<FavoritosModel>(
               builder: (context, favoritosModel, child) {
                 final productosFavoritos = favoritosModel.favoritos;
 
+                // Si no hay productos favoritos
                 if (productosFavoritos.isEmpty) {
-                  return Center(child: Text("No tienes favoritos aún"));
+                  return const Center(child: Text("No tienes favoritos aún"));
                 }
 
+                // Si hay productos favoritos, mostramos la lista
                 return ListView.builder(
                   itemCount: productosFavoritos.length,
                   itemBuilder: (context, index) {
@@ -41,9 +45,9 @@ class FavoritosScreen extends StatelessWidget {
                       direction: DismissDirection.endToStart,
                       background: Container(
                         alignment: Alignment.centerRight,
-                        padding: EdgeInsets.only(right: 20),
+                        padding: const EdgeInsets.only(right: 20),
                         color: Colors.redAccent,
-                        child: Icon(Icons.delete, color: Colors.white),
+                        child: const Icon(Icons.delete, color: Colors.white),
                       ),
                       onDismissed: (_) {
                         favoritosModel.removerFavorito(producto);
@@ -66,26 +70,31 @@ class FavoritosScreen extends StatelessWidget {
               },
             ),
           ),
-          Padding(
+          // Título de sugerencias
+          const Padding(
             padding: EdgeInsets.symmetric(vertical: 5),
             child: Text(
               "Sugerencias para ti",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
+          // Carrusel de sugerencias
           SizedBox(
             height: 180,
             child: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
               future: FirebaseFirestore.instance.collection('productos').get(),
               builder: (context, snapshot) {
+                // Si aún se está cargando
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 }
 
+                // Si ocurrió un error o no hay datos
                 if (snapshot.hasError || !snapshot.hasData) {
-                  return Center(child: Text("Error al cargar productos"));
+                  return const Center(child: Text("Error al cargar productos"));
                 }
 
+                // Mapeamos los productos de Firestore a objetos Producto
                 final productos = snapshot.data!.docs
                     .map((doc) => Producto.fromFirestore(doc))
                     .toList();
@@ -111,7 +120,7 @@ class FavoritosScreen extends StatelessWidget {
                             children: [
                               Container(
                                 width: 350,
-                                margin: EdgeInsets.symmetric(horizontal: 5.0),
+                                margin: const EdgeInsets.symmetric(horizontal: 5.0),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
                                   image: DecorationImage(
@@ -144,7 +153,7 @@ class FavoritosScreen extends StatelessWidget {
               },
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
         ],
       ),
     );

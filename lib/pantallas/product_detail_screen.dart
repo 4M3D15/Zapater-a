@@ -160,11 +160,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.network(
-              producto.imagen,
-              height: 200,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => ProductDetailScreen(producto: producto),
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(0.0, 1.0);
+                      const end = Offset.zero;
+                      const curve = Curves.easeInOut;
+
+                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                      var offsetAnimation = animation.drive(tween);
+
+                      return SlideTransition(position: offsetAnimation, child: child);
+                    },
+                  ),
+                );
+              },
+              child: Hero(
+                tag: producto.nombre,  // Aquí usamos el nombre del producto como identificador único
+                child: Image.network(
+                  producto.imagen,
+                  height: 200,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100),
+                ),
+              ),
             ),
             const SizedBox(height: 10),
             Text(producto.nombre, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
