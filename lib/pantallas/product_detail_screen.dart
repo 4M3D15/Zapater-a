@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zapato/modelos/producto_model.dart';
-import 'package:zapato/modelos/favoritos_model.dart';
-import 'package:zapato/proveedores/cart_provider.dart';
-import 'package:zapato/modelos/cart_model.dart';
+import '../modelos/cart_model.dart';
+import '../modelos/favoritos_model.dart';
+import '../proveedores/cart_provider.dart';
+import 'package:zapato/modelos/productos_model.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Producto producto;

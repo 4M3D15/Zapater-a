@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; // generado por flutterfire
-import 'modelos/producto_model.dart';
 import 'pantallas/inicio.dart';
 import 'pantallas/cart_screen.dart';
 import 'pantallas/product_detail_screen.dart';
@@ -37,17 +36,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Zapato',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
       initialRoute: '/',
       routes: {
         '/': (context) => const InicioScreen(),
         '/cart': (context) => const CartScreen(),
         '/login': (context) => const LoginScreen(),
         '/registro': (context) => const RegistroScreen(),
-        '/favoritos': (context) => FavoritosScreen(), // 🔧 Añadido const
+        '/favoritos': (context) => FavoritosScreen(), // 🔧 sin const
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/product') {
