@@ -3,7 +3,7 @@ class CartItem {
   final String imagen;
   final double precio;
   final String talla;
-  late final int cantidad;
+  int cantidad;
 
   CartItem({
     required this.nombre,

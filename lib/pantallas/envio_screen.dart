@@ -67,10 +67,24 @@ class _EnvioScreenState extends State<EnvioScreen> {
                   itemCount: widget.productos.length,
                   itemBuilder: (ctx, i) {
                     final item = widget.productos[i];
+                    final cantidad = item.cantidad ?? 0; // Asegúrate de que cantidad no sea nula
+                    final precioTotal = (item.precio ?? 0) * cantidad; // Asegúrate de que precio no sea nulo
+
                     return ListTile(
-                      leading: Image.asset(item.imagen, width: 50),
+                      leading: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: Image.network(
+                          item.imagen,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.error, size: 50),
+                        ),
+                      ),
                       title: Text(item.nombre),
-                      subtitle: Text("Cantidad: \${item.cantidad} - \$\${(item.precio * item.cantidad).toStringAsFixed(2)}"),
+                      subtitle: Text(
+                        "Cantidad: $cantidad - \$${precioTotal.toStringAsFixed(2)}",
+                        style: const TextStyle(fontSize: 14, color: Colors.black), // Ajusta el estilo según sea necesario
+                      ),
                     );
                   },
                 ),
