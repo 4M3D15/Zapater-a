@@ -12,6 +12,8 @@ import 'pantallas/favoritos_screen.dart';
 import 'modelos/favoritos_model.dart';
 import 'proveedores/cart_provider.dart';
 import 'modelos/productos_model.dart';
+import 'pantallas/pago_screen.dart';
+import 'pantallas/confirmacion_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +45,19 @@ class MyApp extends StatelessWidget {
         '/cart': (context) => const CartScreen(),
         '/login': (context) => const LoginScreen(),
         '/registro': (context) => const RegistroScreen(),
-        '/favoritos': (context) => FavoritosScreen(), // 🔧 sin const
+        '/favoritos': (context) => FavoritosScreen(),
+        '/pago': (context) => PagoScreen(
+          direccion: '', // Debes pasar los argumentos necesarios aquí
+          productos: [],
+          total: 0.0,
+        ),
+        '/confirmacion': (context) => ConfirmacionScreen(
+          direccion: '', // Debes pasar los argumentos necesarios aquí
+          metodoPago: '',
+          tarjetaCompleta: '',
+          productos: [],
+          total: 0.0,
+        ),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/product') {
