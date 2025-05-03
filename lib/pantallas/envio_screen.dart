@@ -15,11 +15,11 @@ class EnvioScreen extends StatefulWidget {
 class _EnvioScreenState extends State<EnvioScreen> {
   late GoogleMapController _mapController;
   final _codigoPostalController = TextEditingController();
-  final _calleController        = TextEditingController();
-  final _numeroController       = TextEditingController();
-  final _coloniaController      = TextEditingController();
-  final _ciudadController       = TextEditingController();
-  final _estadoController       = TextEditingController();
+  final _calleController = TextEditingController();
+  final _numeroController = TextEditingController();
+  final _coloniaController = TextEditingController();
+  final _ciudadController = TextEditingController();
+  final _estadoController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   final LatLng _ubicacionInicial = LatLng(19.4326, -99.1332);
@@ -33,6 +33,7 @@ class _EnvioScreenState extends State<EnvioScreen> {
           padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               children: [
                 SizedBox(
@@ -42,7 +43,12 @@ class _EnvioScreenState extends State<EnvioScreen> {
                     child: GoogleMap(
                       onMapCreated: (c) => _mapController = c,
                       initialCameraPosition: CameraPosition(target: _ubicacionInicial, zoom: 14),
-                      markers: { Marker(markerId: MarkerId("destino"), position: _ubicacionInicial) },
+                      markers: {
+                        Marker(
+                          markerId: const MarkerId("destino"),
+                          position: _ubicacionInicial,
+                        )
+                      },
                     ),
                   ),
                 ),
@@ -57,6 +63,7 @@ class _EnvioScreenState extends State<EnvioScreen> {
                 const Text("Productos en tu compra:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ListView.builder(
                   shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: widget.productos.length,
                   itemBuilder: (ctx, i) {
                     final item = widget.productos[i];
@@ -78,7 +85,7 @@ class _EnvioScreenState extends State<EnvioScreen> {
                         arguments: {
                           'direccion': direccion,
                           'productos': widget.productos,
-                          'total':     widget.total,
+                          'total': widget.total,
                         },
                       );
                     }

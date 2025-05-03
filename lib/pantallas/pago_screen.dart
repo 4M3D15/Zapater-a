@@ -13,27 +13,27 @@ class PagoScreen extends StatefulWidget {
 }
 
 class _PagoScreenState extends State<PagoScreen> {
-  final _formKey                   = GlobalKey<FormState>();
-  final _numeroTarjetaController   = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _numeroTarjetaController = TextEditingController();
   final _fechaExpiracionController = TextEditingController();
-  final _cvvController             = TextEditingController();
+  final _cvvController = TextEditingController();
   String _tipoTarjeta = 'debito';
 
   void _realizarPago() {
     if (_formKey.currentState?.validate() ?? false) {
-      final metodoPago = "Método: \${_tipoTarjeta == 'debito' ? 'Débito' : 'Crédito'}";
+      final metodoPago = "Método: ${_tipoTarjeta == 'debito' ? 'Débito' : 'Crédito'}";
       final tarjetaCompleta =
-          "\${_numeroTarjetaController.text}|Exp:\${_fechaExpiracionController.text}|CVV:\${_cvvController.text}";
+          "${_numeroTarjetaController.text}|Exp:${_fechaExpiracionController.text}|CVV:${_cvvController.text}";
 
       Navigator.pushNamed(
         context,
         '/confirmacion',
         arguments: {
-          'direccion':       widget.direccion,
-          'metodoPago':      metodoPago,
+          'direccion': widget.direccion,
+          'metodoPago': metodoPago,
           'tarjetaCompleta': tarjetaCompleta,
-          'productos':       widget.productos,
-          'total':           widget.total,
+          'productos': widget.productos,
+          'total': widget.total,
         },
       );
     }
@@ -50,6 +50,7 @@ class _PagoScreenState extends State<PagoScreen> {
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
             children: [
               Row(
@@ -75,9 +76,9 @@ class _PagoScreenState extends State<PagoScreen> {
               const SizedBox(height: 20),
               _campoTexto(_numeroTarjetaController, "Número de tarjeta", 16),
               const SizedBox(height: 20),
-              _campoTexto(_fechaExpiracionController, "Fecha de expiración (MM/AA)", 5, pattern: r'^(0[1-9]|1[0-2])\/\d{2}\$'),
+              _campoTexto(_fechaExpiracionController, "Fecha de expiración (MM/AA)", 5, pattern: r'^(0[1-9]|1[0-2])\/\d{2}$'),
               const SizedBox(height: 20),
-              _campoTexto(_cvvController, "CVV", 3, pattern: r'^\d{3}\$', oculto: true),
+              _campoTexto(_cvvController, "CVV", 3, pattern: r'^\d{3}$', oculto: true),
               const SizedBox(height: 30),
               ElevatedButton(
                 onPressed: _realizarPago,
@@ -109,7 +110,7 @@ class _PagoScreenState extends State<PagoScreen> {
       keyboardType: TextInputType.number,
       validator: (v) {
         if (v == null || v.isEmpty) return 'Campo obligatorio';
-        if (v.length != length) return 'Debe tener \$length dígitos';
+        if (v.length != length) return 'Debe tener $length dígitos';
         if (pattern != null && !RegExp(pattern).hasMatch(v)) return 'Formato inválido';
         return null;
       },
