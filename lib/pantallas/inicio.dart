@@ -26,26 +26,21 @@ class _InicioScreenState extends State<InicioScreen> {
   ];
 
   @override
-  void initState() {
-    super.initState();
-    // Cargar productos después del primer frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProductosModel>(context, listen: false).obtenerProductos();
-    });
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: _screens[_selectedIndex],
+      body: Consumer<ProductosModel>(
+        builder: (context, productosModel, child) {
+          // Comprobamos si la carga de productos está en proceso
+          if (productosModel.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (productosModel.error != null) {
+            return Center(child: Text('Error: ${productosModel.error}'));
+          }
+          return AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: _screens[_selectedIndex],
+          );
+        },
       ),
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.black,
@@ -61,5 +56,11 @@ class _InicioScreenState extends State<InicioScreen> {
         ],
       ),
     );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 }

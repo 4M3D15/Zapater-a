@@ -35,8 +35,8 @@ class Producto {
     return 'https://via.placeholder.com/150';
   }
 
-  factory Producto.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data()! as Map<String, dynamic>;
+  factory Producto.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data()!; // Accedemos al Map<String, dynamic>
     debugPrint('🍀 Producto raw data: $data');
 
     return Producto(
@@ -64,11 +64,9 @@ class ProductosModel with ChangeNotifier {
     notifyListeners();
 
     try {
-      final snapshot =
-      await FirebaseFirestore.instance.collection('productos').get();
+      final snapshot = await FirebaseFirestore.instance.collection('productos').get();
 
-      _productos =
-          snapshot.docs.map((doc) => Producto.fromFirestore(doc)).toList();
+      _productos = snapshot.docs.map((doc) => Producto.fromFirestore(doc)).toList();
     } catch (e) {
       error = 'Error al obtener productos: $e';
       debugPrint(error);

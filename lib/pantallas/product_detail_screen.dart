@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zapato/modelos/cart_model.dart';
-import 'package:zapato/modelos/favoritos_model.dart';
-import 'package:zapato/modelos/productos_model.dart'; // Importa el modelo Producto
+import '../modelos/cart_model.dart';
+import '../modelos/favoritos_model.dart';
 import '../proveedores/cart_provider.dart';
-import '../widgets/animated_favorite_icon.dart';
+import 'package:zapato/modelos/productos_model.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Producto producto;
@@ -129,22 +128,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final producto = widget.producto;
     final favoritosModel = Provider.of<FavoritosModel>(context);
-    final isFavorito = favoritosModel.esFavorito(widget.producto); // ✅ Ya no usamos Map
+    final cartProvider = Provider.of<CartProvider>(context);
+    final isFavorito = favoritosModel.esFavorito(producto);
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-        title: Text(widget.producto.nombre),
+        title: Text(producto.nombre),
         centerTitle: true,
         actions: [
           AnimatedFavoriteIcon(
             esFavorito: isFavorito,
             onTap: () {
               if (isFavorito) {
-                favoritosModel.removerFavorito(widget.producto); // ✅
+                favoritosModel.removerFavorito(producto);
               } else {
-                favoritosModel.agregarFavorito(widget.producto); // ✅
+                favoritosModel.agregarFavorito(producto);
               }
             },
           ),
@@ -160,14 +161,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.network(
-              widget.producto.imagen,
+              producto.imagen,
               height: 200,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100),
             ),
             const SizedBox(height: 10),
-            Text(widget.producto.nombre, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            Text("\$${widget.producto.precio}", style: const TextStyle(fontSize: 18, color: Colors.green)),
+            Text(producto.nombre, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text("\$${producto.precio}", style: const TextStyle(fontSize: 18, color: Colors.green)),
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: _mostrarSelectorTallas,
@@ -189,32 +190,42 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  final cart = Provider.of<CartProvider>(context, listen: false);
-                  cart.addToCart(CartItem(
-                    nombre: widget.producto.nombre,
-                    imagen: widget.producto.imagen,
-                    precio: widget.producto.precio,
+                  cartProvider.addToCart(CartItem(
+                    nombre: producto.nombre,
+                    imagen: producto.imagen,
+                    precio: producto.precio,
                     talla: tallaSeleccionada,
                     cantidad: cantidad,
                   ));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text("Producto agregado al carrito"),
-                      action: SnackBarAction(
-                        label: "Ver carrito",
-                        onPressed: () => Navigator.pushNamed(context, '/cart'),
-                      ),
-                    ),
-                  );
+                  Navigator.pushNamed(context, '/cart');
                 },
                 icon: const Icon(Icons.shopping_cart),
-                label: const Text("Agregar al carrito"),
+                label: const Text("Añadir al carrito"),
               ),
             ),
-            const SizedBox(height: 20),
             _buildResenasSection(),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class AnimatedFavoriteIcon extends StatelessWidget {
+  final bool esFavorito;
+  final Function onTap;
+
+  const AnimatedFavoriteIcon({super.key, required this.esFavorito, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onTap(),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: esFavorito
+            ? const Icon(Icons.favorite, color: Colors.red, key: ValueKey(1))
+            : const Icon(Icons.favorite_border, color: Colors.black, key: ValueKey(0)),
       ),
     );
   }
