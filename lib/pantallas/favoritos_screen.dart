@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:zapato/modelos/favoritos_model.dart';
 import 'package:zapato/widgets/animated_favorite_icon.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:zapato/modelos/producto_model.dart'; // Importando producto_model.dart
+import 'package:zapato/modelos/producto_model.dart';
 
 class FavoritosScreen extends StatelessWidget {
   @override
@@ -97,45 +97,47 @@ class FavoritosScreen extends StatelessWidget {
                     enlargeCenterPage: true,
                   ),
                   items: productos.map((producto) {
-                    return GestureDetector(
-                      onTap: () {
-                        final favoritosModel = Provider.of<FavoritosModel>(context, listen: false);
-                        if (favoritosModel.esFavorito(producto)) {
-                          favoritosModel.removerFavorito(producto);
-                        } else {
-                          favoritosModel.agregarFavorito(producto);
-                        }
-                      },
-                      child: Stack(
-                        children: [
-                          Container(
-                            width: 350,
-                            margin: EdgeInsets.symmetric(horizontal: 5.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              image: DecorationImage(
-                                image: NetworkImage(producto.imagen),
-                                fit: BoxFit.cover,
+                    return Consumer<FavoritosModel>(
+                      builder: (context, favoritosModel, child) {
+                        return GestureDetector(
+                          onTap: () {
+                            if (favoritosModel.esFavorito(producto)) {
+                              favoritosModel.removerFavorito(producto);
+                            } else {
+                              favoritosModel.agregarFavorito(producto);
+                            }
+                          },
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: 350,
+                                margin: EdgeInsets.symmetric(horizontal: 5.0),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  image: DecorationImage(
+                                    image: NetworkImage(producto.imagen),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                               ),
-                            ),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: AnimatedFavoriteIcon(
+                                  esFavorito: favoritosModel.esFavorito(producto),
+                                  onTap: () {
+                                    if (favoritosModel.esFavorito(producto)) {
+                                      favoritosModel.removerFavorito(producto);
+                                    } else {
+                                      favoritosModel.agregarFavorito(producto);
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: AnimatedFavoriteIcon(
-                              esFavorito: Provider.of<FavoritosModel>(context).esFavorito(producto),
-                              onTap: () {
-                                final favoritosModel = Provider.of<FavoritosModel>(context, listen: false);
-                                if (favoritosModel.esFavorito(producto)) {
-                                  favoritosModel.removerFavorito(producto);
-                                } else {
-                                  favoritosModel.agregarFavorito(producto);
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     );
                   }).toList(),
                 );

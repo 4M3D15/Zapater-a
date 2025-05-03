@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zapato/modelos/favoritos_model.dart';
-import 'package:zapato/modelos/productos_model.dart';
+import 'package:zapato/modelos/producto_model.dart'; // Importando producto_model.dart
 import 'package:zapato/widgets/animated_favorite_icon.dart';
+
+import '../Servicios/firestore_service.dart';
 
 class BusquedaScreen extends StatefulWidget {
   const BusquedaScreen({super.key});
@@ -13,28 +15,28 @@ class BusquedaScreen extends StatefulWidget {
 
 class _BusquedaScreenState extends State<BusquedaScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> productos = [
-    {"nombre": "Tenis Nike", "precio": 1200, "imagen": "assets/cortez.png"},
-    {"nombre": "Adidas Sport", "precio": 1500, "imagen": "assets/YZ1.png"},
-    {"nombre": "New Balance Casual", "precio": 1100, "imagen": "assets/55810NB.png"},
-    {"nombre": "Yeezy", "precio": 1300, "imagen": "assets/YZPINK.png"},
-    {"nombre": "Nike Court Vision", "precio": 1300, "imagen": "assets/courtvision.png"},
-    {"nombre": "New Balance", "precio": 1300, "imagen": "assets/55412NB.png"}
-  ];
-
-  List<Map<String, dynamic>> filteredProductos = [];
+  final FirestoreService _firestoreService = FirestoreService();
+  List<Producto> productos = [];
+  List<Producto> filteredProductos = [];
 
   @override
   void initState() {
     super.initState();
-    filteredProductos = productos;
+    _loadProductos();
+  }
+
+  Future<void> _loadProductos() async {
+    productos = await _firestoreService.obtenerProductos();
+    setState(() {
+      filteredProductos = productos;
+    });
   }
 
   void _searchProducts() {
     String query = _searchController.text.toLowerCase();
     setState(() {
       filteredProductos = productos.where((producto) {
-        return producto["nombre"].toLowerCase().contains(query);
+        return producto.nombre.toLowerCase().contains(query);
       }).toList();
     });
   }
@@ -102,8 +104,8 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
                             children: [
                               ClipRRect(
                                 borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                                child: Image.asset(
-                                  producto["imagen"],
+                                child: Image.network(
+                                  producto.imagen,
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                 ),
@@ -112,13 +114,13 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
                                 top: 8,
                                 right: 8,
                                 child: AnimatedFavoriteIcon(
-                                  esFavorito: Provider.of<FavoritosModel>(context).esFavorito(producto as Producto),
+                                  esFavorito: Provider.of<FavoritosModel>(context).esFavorito(producto),
                                   onTap: () {
                                     final favoritosModel = Provider.of<FavoritosModel>(context, listen: false);
-                                    if (favoritosModel.esFavorito(producto as Producto)) {
-                                      favoritosModel.removerFavorito(producto as Producto);
+                                    if (favoritosModel.esFavorito(producto)) {
+                                      favoritosModel.removerFavorito(producto);
                                     } else {
-                                      favoritosModel.agregarFavorito(producto as Producto);
+                                      favoritosModel.agregarFavorito(producto);
                                     }
                                   },
                                 ),
@@ -131,11 +133,11 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
                           child: Column(
                             children: [
                               Text(
-                                producto["nombre"],
+                                producto.nombre,
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                "\$${producto["precio"]}",
+                                "\$${producto.precio}",
                                 style: const TextStyle(color: Colors.green),
                               ),
                             ],

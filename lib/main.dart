@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; // generado por flutterfire
+import 'modelos/producto_model.dart';
 import 'pantallas/inicio.dart';
 import 'pantallas/cart_screen.dart';
 import 'pantallas/product_detail_screen.dart';

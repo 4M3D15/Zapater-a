@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:zapato/modelos/productos_model.dart';
+import 'package:zapato/modelos/favoritos_model.dart';
+import 'package:zapato/widgets/animated_favorite_icon.dart';
 
 class InicioContent extends StatelessWidget {
   const InicioContent({super.key});
@@ -37,6 +39,7 @@ class InicioContent extends StatelessWidget {
             height: carouselHeight,
             autoPlay: true,
             enlargeCenterPage: true,
+
           ),
           items: productos.map((producto) {
             return GestureDetector(
@@ -91,16 +94,38 @@ class InicioContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(10),
-                          ),
-                          child: Image.network(
-                            producto.imagen,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                          ),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(10),
+                              ),
+                              child: Image.network(
+                                producto.imagen,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: Consumer<FavoritosModel>(
+                                builder: (context, favoritosModel, child) {
+                                  return AnimatedFavoriteIcon(
+                                    esFavorito: favoritosModel.esFavorito(producto),
+                                    onTap: () {
+                                      if (favoritosModel.esFavorito(producto)) {
+                                        favoritosModel.removerFavorito(producto);
+                                      } else {
+                                        favoritosModel.agregarFavorito(producto);
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       Padding(

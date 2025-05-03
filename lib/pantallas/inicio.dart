@@ -20,7 +20,7 @@ class _InicioScreenState extends State<InicioScreen> {
   static final List<Widget> _screens = <Widget>[
     const InicioContent(),
     const BusquedaScreen(),
-    FavoritosScreen(),
+     FavoritosScreen(),
     const CartScreen(),
     const PerfilScreen(),
   ];
