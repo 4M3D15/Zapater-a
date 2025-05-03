@@ -1,53 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zapato/modelos/favoritos_model.dart';
+
 import 'package:zapato/modelos/productos_model.dart';
+import 'package:zapato/modelos/favoritos_model.dart';
 import 'package:zapato/widgets/animated_favorite_icon.dart';
 
 class BusquedaScreen extends StatefulWidget {
   const BusquedaScreen({super.key});
-
   @override
   _BusquedaScreenState createState() => _BusquedaScreenState();
 }
 
 class _BusquedaScreenState extends State<BusquedaScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> productos = [
-    {"nombre": "Tenis Nike", "precio": 1200, "imagen": "assets/cortez.png"},
-    {"nombre": "Adidas Sport", "precio": 1500, "imagen": "assets/YZ1.png"},
-    {"nombre": "New Balance Casual", "precio": 1100, "imagen": "assets/55810NB.png"},
-    {"nombre": "Yeezy", "precio": 1300, "imagen": "assets/YZPINK.png"},
-    {"nombre": "Nike Court Vision", "precio": 1300, "imagen": "assets/courtvision.png"},
-    {"nombre": "New Balance", "precio": 1300, "imagen": "assets/55412NB.png"}
-  ];
-
-  List<Map<String, dynamic>> filteredProductos = [];
+  List<Producto> _filtered = [];
 
   @override
   void initState() {
     super.initState();
-    filteredProductos = productos;
+    _filtered = [];
   }
 
-  void _searchProducts() {
-    String query = _searchController.text.toLowerCase();
+  void _searchProducts(List<Producto> allProducts) {
+    final q = _searchController.text.toLowerCase();
     setState(() {
-      filteredProductos = productos.where((producto) {
-        return producto["nombre"].toLowerCase().contains(query);
-      }).toList();
+      _filtered = q.isEmpty
+          ? allProducts
+          : allProducts.where((p) => p.nombre.toLowerCase().contains(q)).toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final allProducts    = Provider.of<ProductosModel>(context).productos;
+    final favoritosModel = Provider.of<FavoritosModel>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Buscar Productos', style: TextStyle(color: Colors.black)),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: Column(
         children: [
@@ -55,25 +49,22 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               controller: _searchController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Busca tu producto...',
                 prefixIcon: Icon(Icons.search, color: Colors.black54),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.black54),
-                ),
+                border: OutlineInputBorder(),
               ),
-              onChanged: (value) {
-                _searchProducts();
-              },
+              onChanged: (_) => _searchProducts(allProducts),
             ),
           ),
           Expanded(
-            child: filteredProductos.isEmpty
+            child: _filtered.isEmpty
                 ? Center(
               child: Text(
-                'No se encontraron productos',
-                style: TextStyle(fontSize: 18, color: Colors.black),
+                _searchController.text.isEmpty
+                    ? 'Empieza a escribir para buscar'
+                    : 'No se encontraron productos',
+                style: const TextStyle(fontSize: 18),
               ),
             )
                 : GridView.builder(
@@ -84,26 +75,30 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
                 mainAxisSpacing: 10,
                 childAspectRatio: 0.8,
               ),
-              itemCount: filteredProductos.length,
+              itemCount: _filtered.length,
               itemBuilder: (context, index) {
-                final producto = filteredProductos[index];
+                final producto = _filtered[index];
+                final isFav    = favoritosModel.esFavorito(producto);
+
                 return GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, '/product', arguments: producto);
-                  },
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    '/product',
+                    arguments: producto,
+                  ),
                   child: Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Expanded(
                           child: Stack(
                             children: [
                               ClipRRect(
                                 borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                                child: Image.asset(
-                                  producto["imagen"],
+                                child: Image.network(
+                                  producto.imagen,
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                 ),
@@ -112,14 +107,10 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
                                 top: 8,
                                 right: 8,
                                 child: AnimatedFavoriteIcon(
-                                  esFavorito: Provider.of<FavoritosModel>(context).esFavorito(producto as Producto),
+                                  esFavorito: isFav,
                                   onTap: () {
-                                    final favoritosModel = Provider.of<FavoritosModel>(context, listen: false);
-                                    if (favoritosModel.esFavorito(producto as Producto)) {
-                                      favoritosModel.removerFavorito(producto as Producto);
-                                    } else {
-                                      favoritosModel.agregarFavorito(producto as Producto);
-                                    }
+                                    if (isFav) favoritosModel.removerFavorito(producto);
+                                    else favoritosModel.agregarFavorito(producto);
                                   },
                                 ),
                               ),
@@ -130,14 +121,8 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: Column(
                             children: [
-                              Text(
-                                producto["nombre"],
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                "\$${producto["precio"]}",
-                                style: const TextStyle(color: Colors.green),
-                              ),
+                              Text(producto.nombre, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Text("\$${producto.precio}", style: const TextStyle(color: Colors.green)),
                             ],
                           ),
                         ),
