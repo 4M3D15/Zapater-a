@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zapato/proveedores/cart_provider.dart';
-import '../modelos/cart_model.dart';
-import 'envio_screen.dart';
+import 'package:zapato/modelos/cart_model.dart';
+import 'package:zapato/pantallas/envio_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -12,11 +12,14 @@ class CartScreen extends StatelessWidget {
     final cart = Provider.of<CartProvider>(context);
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Carrito de Compras"),
+      ),
       body: SafeArea(
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -36,7 +39,7 @@ class CartScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
                       children: [
-                        Image.asset(item.imagen, width: 80),
+                        Image.network(item.imagen, width: 80),
                         SizedBox(width: 16),
                         Expanded(
                           child: Column(
@@ -91,7 +94,7 @@ class CartScreen extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

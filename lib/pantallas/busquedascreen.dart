@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zapato/modelos/favoritos_model.dart';
-import 'package:zapato/modelos/productos_model.dart';
+import 'package:zapato/modelos/producto_model.dart';
 import 'package:zapato/widgets/animated_favorite_icon.dart';
 
 class BusquedaScreen extends StatefulWidget {

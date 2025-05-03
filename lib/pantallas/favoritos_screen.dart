@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:zapato/modelos/favoritos_model.dart';
 import 'package:zapato/widgets/animated_favorite_icon.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:zapato/modelos/productos_model.dart'; // Importando productos_model.dart
+import 'package:zapato/modelos/producto_model.dart'; // Importando producto_model.dart
 
 class FavoritosScreen extends StatelessWidget {
   @override
