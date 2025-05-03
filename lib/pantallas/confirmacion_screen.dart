@@ -8,7 +8,8 @@ class ConfirmacionScreen extends StatelessWidget {
   final List<CartItem> productos;
   final double total;
 
-  const ConfirmacionScreen({super.key,
+  const ConfirmacionScreen({
+    super.key,
     required this.direccion,
     required this.metodoPago,
     required this.tarjetaCompleta,
@@ -20,12 +21,12 @@ class ConfirmacionScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text("✅ Compra confirmada"),
-        content: Text("Gracias por tu compra. Tu pedido está en camino."),
+        title: const Text("✅ Compra confirmada"),
+        content: const Text("Gracias por tu compra. Tu pedido está en camino."),
         actions: [
           TextButton(
             onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
-            child: Text("Aceptar"),
+            child: const Text("Aceptar"),
           ),
         ],
       ),
@@ -36,7 +37,7 @@ class ConfirmacionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Confirmación de compra"),
+        title: const Text("Confirmación de compra"),
         backgroundColor: Colors.white,
         centerTitle: true,
       ),
@@ -47,9 +48,9 @@ class ConfirmacionScreen extends StatelessWidget {
             Expanded(
               child: ListView(
                 children: [
-                  Text("🛍️ Productos:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text("🛍️ Productos:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ...productos.map((item) => Card(
-                    margin: EdgeInsets.symmetric(vertical: 8),
+                    margin: const EdgeInsets.symmetric(vertical: 8),
                     child: ListTile(
                       leading: Image.asset(item.imagen, width: 50),
                       title: Text(item.nombre),
@@ -63,32 +64,34 @@ class ConfirmacionScreen extends StatelessWidget {
                       trailing: Text("\$${(item.precio * item.cantidad).toStringAsFixed(2)}"),
                     ),
                   )),
-                  Divider(),
-                  ListTile(title: Text("📍 Dirección de envío"), subtitle: Text(direccion)),
+                  const Divider(),
+                  ListTile(title: const Text("📍 Dirección de envío"), subtitle: Text(direccion)),
                   ListTile(
-                    title: Text("💳 Método de pago"),
+                    title: const Text("💳 Método de pago"),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(metodoPago),
-                        Text("Tarjeta: **** ${tarjetaCompleta.substring(tarjetaCompleta.length - 4)}"),
+                        Text(
+                          "Tarjeta: **** ${tarjetaCompleta.length >= 4 ? tarjetaCompleta.substring(tarjetaCompleta.length - 4) : 'N/A'}",
+                        ),
                       ],
                     ),
                   ),
                   ListTile(
-                    title: Text("💰 Total"),
-                    trailing: Text("\$${total.toStringAsFixed(2)}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    title: const Text("💰 Total"),
+                    trailing: Text("\$${total.toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
             ),
             ElevatedButton.icon(
-              icon: Icon(Icons.check),
-              label: Text("Confirmar compra"),
+              icon: const Icon(Icons.check),
+              label: const Text("Confirmar compra"),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 foregroundColor: Colors.white,
-                minimumSize: Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 50),
               ),
               onPressed: () => _confirmarCompra(context),
             ),

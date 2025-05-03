@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:zapato/modelos/cart_model.dart';
 
 class PagoScreen extends StatefulWidget {
@@ -76,7 +77,9 @@ class _PagoScreenState extends State<PagoScreen> {
               const SizedBox(height: 20),
               _campoTexto(_numeroTarjetaController, "Número de tarjeta", 16),
               const SizedBox(height: 20),
-              _campoTexto(_fechaExpiracionController, "Fecha de expiración (MM/AA)", 5, pattern: r'^(0[1-9]|1[0-2])\/\d{2}$'),
+              _campoTexto(_fechaExpiracionController, "Fecha de expiración (MM/AA)", 5, pattern: r'^(0[1-9]|1[0-2])\/\d{2}$', inputFormatters: [
+                _CardExpirationDateFormatter(),
+              ]),
               const SizedBox(height: 20),
               _campoTexto(_cvvController, "CVV", 3, pattern: r'^\d{3}$', oculto: true),
               const SizedBox(height: 30),
@@ -102,12 +105,14 @@ class _PagoScreenState extends State<PagoScreen> {
       int length, {
         String? pattern,
         bool oculto = false,
+        List<TextInputFormatter>? inputFormatters,
       }) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
       obscureText: oculto,
       keyboardType: TextInputType.number,
+      inputFormatters: inputFormatters ?? [],
       validator: (v) {
         if (v == null || v.isEmpty) return 'Campo obligatorio';
         if (v.length != length) return 'Debe tener $length dígitos';
@@ -115,5 +120,31 @@ class _PagoScreenState extends State<PagoScreen> {
         return null;
       },
     );
+  }
+}
+
+class _CardExpirationDateFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = _formatCardExpirationDate(newValue.text);
+    return newValue.copyWith(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+
+  String _formatCardExpirationDate(String text) {
+    // Eliminar cualquier carácter que no sea un dígito
+    final digitsOnly = text.replaceAll(RegExp(r'\D'), '');
+
+    // Formatear como MM/AA
+    final StringBuffer buffer = StringBuffer();
+    for (int i = 0; i < digitsOnly.length; i++) {
+      buffer.write(digitsOnly[i]);
+      if ((i == 1)) {
+        buffer.write('/');
+      }
+    }
+    return buffer.toString();
   }
 }
