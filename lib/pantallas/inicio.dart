@@ -4,8 +4,7 @@ import '../pantallas/favoritos_screen.dart';
 import '../pantallas/busquedascreen.dart';
 import '../pantallas/cart_screen.dart';
 import '../pantallas/perfil_screen.dart';
-import '../pantallas/custom_bottom_nav_bar.dart';
-import 'custom_bottom_nav_bar.dart';
+import '../pantallas/custom_bottom_nav_bar.dart'; // ← nombre correcto del archivo del nav bar
 import 'inicio_content.dart';
 
 class InicioScreen extends StatefulWidget {
@@ -17,6 +16,7 @@ class InicioScreen extends StatefulWidget {
 
 class _InicioScreenState extends State<InicioScreen> {
   int _currentIndex = 0;
+  bool _isVisible = true;
 
   final List<Widget> _pantallas = const [
     InicioContent(),
@@ -35,11 +35,12 @@ class _InicioScreenState extends State<InicioScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true, // permite que el fondo del BottomNav sea transparente
+      extendBody: true,
       body: _pantallas[_currentIndex],
-      bottomNavigationBar: CustomBottomNavBar(
+      bottomNavigationBar: BarraNavegacionInferior( // ← uso correcto del widget
         currentIndex: _currentIndex,
         onTap: _onItemTapped,
+        isVisible: _isVisible,
       ),
     );
   }
