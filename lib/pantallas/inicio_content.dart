@@ -1,10 +1,9 @@
-// lib/pantallas/inicio_content.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zapato/modelos/productos_model.dart';
-import 'package:zapato/modelos/favoritos_model.dart';
-import 'package:zapato/widgets/animated_favorite_icon.dart';
+import '../modelos/productos_model.dart';
+import '../modelos/favoritos_model.dart';
+import '../widgets/animated_favorite_icon.dart';
 
 class InicioContent extends StatefulWidget {
   const InicioContent({Key? key}) : super(key: key);
@@ -43,7 +42,7 @@ class _InicioContentState extends State<InicioContent> {
 
   @override
   Widget build(BuildContext context) {
-    final productosModel = Provider.of<ProductosModel>(context);
+    final productosModel = context.watch<ProductosModel>();
     if (productosModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -55,14 +54,10 @@ class _InicioContentState extends State<InicioContent> {
     final size = MediaQuery.of(context).size;
     final carouselHeight = size.height * 0.28;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Zapatería', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-      ),
-      body: Column(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 100),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 12),
 
@@ -79,7 +74,7 @@ class _InicioContentState extends State<InicioContent> {
                   onTap: () => Navigator.pushNamed(
                     context,
                     '/product',
-                    arguments: p.id,    // ← enviamos sólo el String id
+                    arguments: p.id,
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -90,7 +85,8 @@ class _InicioContentState extends State<InicioContent> {
                         children: [
                           Image.network(p.imagen, fit: BoxFit.cover),
                           Positioned(
-                            top: 8, right: 8,
+                            top: 8,
+                            right: 8,
                             child: Consumer<FavoritosModel>(
                               builder: (_, fav, __) {
                                 final isFav = fav.esFavorito(p);
@@ -104,7 +100,9 @@ class _InicioContentState extends State<InicioContent> {
                             ),
                           ),
                           Positioned(
-                            bottom: 0, left: 0, right: 0,
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: const BoxDecoration(
@@ -114,7 +112,10 @@ class _InicioContentState extends State<InicioContent> {
                                   end: Alignment.bottomCenter,
                                 ),
                               ),
-                              child: Text(p.nombre, style: const TextStyle(color: Colors.white)),
+                              child: Text(
+                                p.nombre,
+                                style: const TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
                         ],
@@ -155,78 +156,87 @@ class _InicioContentState extends State<InicioContent> {
           const SizedBox(height: 12),
 
           // Grid de productos
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: size.width < 600 ? 2 : 4,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: size.width < 600 ? 0.75 : 0.65,
-                ),
-                itemCount: _productos!.length,
-                itemBuilder: (ctx, i) {
-                  final p = _productos![i];
-                  return Material(
-                    elevation: 3,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: size.width < 600 ? 2 : 4,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: size.width < 600 ? 0.75 : 0.65,
+              ),
+              itemCount: _productos!.length,
+              itemBuilder: (ctx, i) {
+                final p = _productos![i];
+                return Material(
+                  elevation: 3,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
                     borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        '/product',
-                        arguments: p.id,  // ← enviamos sólo el String id
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Image.network(p.imagen, fit: BoxFit.cover),
-                                  Positioned(
-                                    top: 8, right: 8,
-                                    child: Consumer<FavoritosModel>(
-                                      builder: (_, fav2, __) {
-                                        final favFlag = fav2.esFavorito(p);
-                                        return AnimatedFavoriteIcon(
-                                          esFavorito: favFlag,
-                                          onTap: () => favFlag
-                                              ? fav2.removerFavorito(p)
-                                              : fav2.agregarFavorito(p),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      '/product',
+                      arguments: p.id,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(12)),
+                            child: Stack(
+                              fit: StackFit.expand,
                               children: [
-                                Text(p.nombre,
-                                    style: const TextStyle(fontWeight: FontWeight.w600),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis),
-                                const SizedBox(height: 4),
-                                Text('\$${p.precio.toStringAsFixed(2)}',
-                                    style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold)),
+                                Image.network(p.imagen, fit: BoxFit.cover),
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: Consumer<FavoritosModel>(
+                                    builder: (_, fav2, __) {
+                                      final favFlag = fav2.esFavorito(p);
+                                      return AnimatedFavoriteIcon(
+                                        esFavorito: favFlag,
+                                        onTap: () => favFlag
+                                            ? fav2.removerFavorito(p)
+                                            : fav2.agregarFavorito(p),
+                                      );
+                                    },
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                p.nombre,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '\$${p.precio.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                    color: Colors.green.shade700,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
           ),
         ],

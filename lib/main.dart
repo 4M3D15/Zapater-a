@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
-import 'pantallas/inicio.dart';
+
+import 'pantallas/main_screen.dart';
 import 'pantallas/cart_screen.dart';
-import 'pantallas/favoritos_screen.dart';
 import 'pantallas/login_screen.dart';
 import 'pantallas/registro_screen.dart';
 import 'pantallas/product_detail_screen.dart';
+
 import 'proveedores/cart_provider.dart';
 import 'modelos/favoritos_model.dart';
 import 'modelos/productos_model.dart';
@@ -38,11 +39,10 @@ class MyApp extends StatelessWidget {
       title: 'Zapato',
       initialRoute: '/',
       routes: {
-        '/': (context) => const InicioScreen(),
+        '/': (context) => const MainScreen(),
         '/cart': (context) => const CartScreen(),
         '/login': (context) => const LoginScreen(),
         '/registro': (context) => const RegistroScreen(),
-        '/favoritos': (context) => const FavoritosScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/product') {

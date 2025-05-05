@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zapato/modelos/favoritos_model.dart';
-import 'package:zapato/modelos/producto_model.dart'; // Importando Producto correctamente
-import 'package:zapato/widgets/animated_favorite_icon.dart';
+import '../modelos/favoritos_model.dart';
+import '../modelos/producto_model.dart';
+import '../widgets/animated_favorite_icon.dart';
 import '../Servicios/firestore_service.dart';
 
 class BusquedaScreen extends StatefulWidget {
-  const BusquedaScreen({super.key});
+  const BusquedaScreen({Key? key}) : super(key: key);
 
   @override
   _BusquedaScreenState createState() => _BusquedaScreenState();
@@ -15,9 +15,9 @@ class BusquedaScreen extends StatefulWidget {
 class _BusquedaScreenState extends State<BusquedaScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FirestoreService _firestoreService = FirestoreService();
-  List<Producto> productos = []; // Lista de productos del tipo Producto
-  List<Producto> filteredProductos = []; // Lista filtrada de productos
-  List<String> sugerencias = []; // Lista de sugerencias de búsqueda
+  List<Producto> productos = [];
+  List<Producto> filteredProductos = [];
+  List<String> sugerencias = [];
 
   @override
   void initState() {
@@ -26,130 +26,127 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
   }
 
   Future<void> _loadProductos() async {
-    List<Producto> productosRecibidos = await _firestoreService.obtenerProductos();
+    final cargados = await _firestoreService.obtenerProductos();
     setState(() {
-      productos = productosRecibidos; // Carga de productos desde Firestore
-      filteredProductos = productos; // Inicialización de la lista filtrada
+      productos = cargados;
+      filteredProductos = cargados;
     });
   }
 
   void _searchProducts(String query) {
+    final lower = query.toLowerCase();
     setState(() {
-      filteredProductos = productos.where((producto) {
-        // Filtrando los productos por nombre
-        return producto.nombre.toLowerCase().contains(query.toLowerCase());
-      }).toList();
-
-      // Generar sugerencias de búsqueda
+      filteredProductos = productos
+          .where((p) => p.nombre.toLowerCase().contains(lower))
+          .toList();
       sugerencias = productos
-          .where((producto) => producto.nombre.toLowerCase().startsWith(query.toLowerCase()))
-          .map((producto) => producto.nombre)
+          .where((p) => p.nombre.toLowerCase().startsWith(lower))
+          .map((p) => p.nombre)
           .toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Buscar Productos', style: TextStyle(color: Colors.black)),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
-      body: Column(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(10),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Busca tu producto...',
-                prefixIcon: const Icon(Icons.search, color: Colors.black54),
+                prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.black54),
                 ),
               ),
-              onChanged: (value) {
-                _searchProducts(value);
-              },
+              onChanged: _searchProducts,
             ),
           ),
-          // Mostrar sugerencias de búsqueda
           if (sugerencias.isNotEmpty)
             Container(
-              height: 100, // Altura fija para las sugerencias
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              constraints: const BoxConstraints(maxHeight: 120),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: ListView.builder(
                 itemCount: sugerencias.length,
-                itemBuilder: (context, index) {
-                  final sugerencia = sugerencias[index];
+                itemBuilder: (_, i) {
+                  final s = sugerencias[i];
                   return ListTile(
-                    title: Text(sugerencia),
+                    title: Text(s),
                     onTap: () {
-                      _searchController.text = sugerencia;
-                      _searchProducts(sugerencia);
+                      _searchController.text = s;
+                      _searchProducts(s);
                     },
                   );
                 },
               ),
             ),
-          Expanded(
-            child: filteredProductos.isEmpty
-                ? const Center(
-              child: Text(
-                'No se encontraron productos',
-                style: TextStyle(fontSize: 18, color: Colors.black),
-              ),
-            )
-                : GridView.builder(
-              padding: const EdgeInsets.all(10),
+          const SizedBox(height: 10),
+          filteredProductos.isEmpty
+              ? const Padding(
+            padding: EdgeInsets.only(top: 20),
+            child: Text(
+              'No se encontraron productos',
+              style: TextStyle(fontSize: 18),
+            ),
+          )
+              : Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
                 childAspectRatio: 0.8,
               ),
               itemCount: filteredProductos.length,
-              itemBuilder: (context, index) {
-                final producto = filteredProductos[index];
+              itemBuilder: (_, idx) {
+                final producto = filteredProductos[idx];
                 return GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, '/product', arguments: producto.id);
-                  },
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    '/product',
+                    arguments: producto.id,
+                  ),
                   child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Expanded(
                           child: Stack(
                             children: [
                               ClipRRect(
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                                borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(10)),
                                 child: producto.imagen.isNotEmpty
                                     ? Image.network(
                                   producto.imagen,
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                 )
-                                    : const Icon(Icons.image, size: 50, color: Colors.grey),
+                                    : const Icon(Icons.image,
+                                    size: 50, color: Colors.grey),
                               ),
                               Positioned(
                                 top: 8,
                                 right: 8,
-                                child: AnimatedFavoriteIcon(
-                                  esFavorito: Provider.of<FavoritosModel>(context).esFavorito(producto),
-                                  onTap: () {
-                                    final favoritosModel = Provider.of<FavoritosModel>(context, listen: false);
-                                    if (favoritosModel.esFavorito(producto)) {
-                                      favoritosModel.removerFavorito(producto);
-                                    } else {
-                                      favoritosModel.agregarFavorito(producto);
-                                    }
+                                child: Consumer<FavoritosModel>(
+                                  builder: (_, favs, __) {
+                                    final isFav =
+                                    favs.esFavorito(producto);
+                                    return AnimatedFavoriteIcon(
+                                      esFavorito: isFav,
+                                      onTap: () => isFav
+                                          ? favs.removerFavorito(producto)
+                                          : favs.agregarFavorito(producto),
+                                    );
                                   },
                                 ),
                               ),
@@ -157,16 +154,22 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.all(8),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 producto.nombre,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
+                              const SizedBox(height: 4),
                               Text(
-                                "\$${producto.precio}",
-                                style: const TextStyle(color: Colors.green),
+                                '\$${producto.precio.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                    color: Colors.green),
                               ),
                             ],
                           ),

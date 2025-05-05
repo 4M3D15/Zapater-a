@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:zapato/proveedores/cart_provider.dart';
 import 'package:zapato/modelos/cart_model.dart';
 import 'package:zapato/pantallas/envio_screen.dart';
-import 'package:zapato/widgets/animated_page_wrapper.dart'; // Importa el wrapper de animación
+import 'package:zapato/widgets/animated_page_wrapper.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -54,76 +54,92 @@ class CartScreen extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     "Bolsa",
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
               Expanded(
                 child: cart.items.isEmpty
-                    ? const Center(child: Text("Tu carrito está vacío"))
+                    ? const Center(
+                  child: Text(
+                    "Tu carrito está vacío",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                )
                     : ListView.builder(
                   itemCount: cart.items.length,
                   itemBuilder: (context, index) {
                     final item = cart.items[index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: Row(
-                        children: [
-                          Image.network(item.imagen, width: 80),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item.nombre,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold)),
-                                Text("Talla: ${item.talla}"),
-                                Row(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.remove,
-                                          color: Colors.black),
-                                      onPressed: () {
-                                        if (item.cantidad > 1) {
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                item.imagen,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item.nombre,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16)),
+                                  const SizedBox(height: 4),
+                                  Text("Talla: ${item.talla}"),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.remove),
+                                        onPressed: () {
+                                          if (item.cantidad > 1) {
+                                            cart.updateQuantity(
+                                                item, item.cantidad - 1);
+                                          }
+                                        },
+                                      ),
+                                      Text('${item.cantidad}',
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                      IconButton(
+                                        icon: const Icon(Icons.add),
+                                        onPressed: () {
                                           cart.updateQuantity(
-                                              item, item.cantidad - 1);
-                                        }
-                                      },
-                                    ),
-                                    Text("${item.cantidad}",
-                                        style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold)),
-                                    IconButton(
-                                      icon: const Icon(Icons.add,
-                                          color: Colors.black),
-                                      onPressed: () {
-                                        cart.updateQuantity(
-                                            item, item.cantidad + 1);
-                                      },
-                                    ),
-                                  ],
+                                              item, item.cantidad + 1);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              children: [
+                                Text(
+                                  "\$${(item.precio * item.cantidad).toStringAsFixed(2)}",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => cart.removeFromCart(item),
                                 ),
                               ],
                             ),
-                          ),
-                          Column(
-                            children: [
-                              Text(
-                                "\$${(item.precio * item.cantidad).toStringAsFixed(2)}",
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              IconButton(
-                                icon:
-                                const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => cart.removeFromCart(item),
-                              ),
-                            ],
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -132,7 +148,7 @@ class CartScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const Divider(),
                     Row(
@@ -169,14 +185,12 @@ class CartScreen extends StatelessWidget {
                         if (cart.items.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text(
-                                  "Por favor, agrega productos al carrito antes de finalizar la compra."),
+                              content: Text("Agrega productos antes de continuar."),
                               backgroundColor: Colors.red,
                             ),
                           );
                         } else {
-                          final List<CartItem> productos =
-                          List<CartItem>.from(cart.items);
+                          final productos = List<CartItem>.from(cart.items);
                           final total = cart.totalPrice;
                           cart.clearCart();
                           Navigator.push(
