@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'package:zapato/pantallas/inicio.dart';
-import 'firebase_options.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-import 'pantallas/inicio.dart'; // <-- Cambiado aquí
+import 'firebase_options.dart';
+import 'pantallas/inicio.dart';
 import 'pantallas/cart_screen.dart';
 import 'pantallas/login_screen.dart';
 import 'pantallas/registro_screen.dart';
 import 'pantallas/product_detail_screen.dart';
+import 'pantallas/editar_perfil_screen.dart'; // ✅ AÑADIDO
 
 import 'proveedores/cart_provider.dart';
 import 'modelos/favoritos_model.dart';
@@ -17,6 +18,8 @@ import 'modelos/productos_model.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await initializeDateFormatting('es'); // ✅ para DateFormat en español
+
   runApp(
     MultiProvider(
       providers: [
@@ -39,10 +42,11 @@ class MyApp extends StatelessWidget {
       title: 'Zapato',
       initialRoute: '/',
       routes: {
-        '/': (context) => const InicioScreen(), // <-- Cambiado aquí
+        '/': (context) => const InicioScreen(),
         '/cart': (context) => const CartScreen(),
         '/login': (context) => const loginscreen(),
         '/registro': (context) => const registroscreen(),
+        '/editar-perfil': (context) => const EditarPerfilScreen(), // ✅ Ruta nueva
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/product') {

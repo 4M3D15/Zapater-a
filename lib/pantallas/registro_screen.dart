@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-
 class registroscreen extends StatefulWidget {
   const registroscreen({super.key});
 
@@ -55,7 +54,6 @@ class _PerfilScreenState extends State<registroscreen> with SingleTickerProvider
           ? const Center(child: CircularProgressIndicator())
           : Stack(
         children: [
-          // Fondo tipo glassmorphism
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -65,7 +63,6 @@ class _PerfilScreenState extends State<registroscreen> with SingleTickerProvider
               ),
             ),
           ),
-          // Contenido
           SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 100, 16, 32),
             child: AnimatedContainer(
@@ -104,13 +101,13 @@ class _PerfilScreenState extends State<registroscreen> with SingleTickerProvider
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Miembro desde: ${dateFormat.format((_userData!['fechaRegistro'] as Timestamp).toDate())}',
+                    'Miembro desde: ${toBeginningOfSentenceCase(dateFormat.format((_userData!['fechaRegistro'] as Timestamp).toDate()))}',
                     style: const TextStyle(color: Colors.white60, fontSize: 12),
                   ),
                   const SizedBox(height: 30),
 
                   _buildOption(Icons.edit, "Editar perfil", () {
-                    // Navegar a editar perfil
+                    Navigator.pushNamed(context, '/editar-perfil');
                   }),
                   _buildOption(Icons.lock, "Cambiar contraseña", () {
                     // Navegar a cambiar contraseña
