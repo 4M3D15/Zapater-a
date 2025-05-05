@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegistroScreen extends StatefulWidget {
   const RegistroScreen({super.key});
@@ -17,61 +15,16 @@ class _RegistroScreenState extends State<RegistroScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  Future<void> _registrarUsuario() async {
-    try {
-      if (_formKey.currentState!.validate()) {
-        // Crear cuenta de usuario
-        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-
-        // Obtener el UID del nuevo usuario
-        String uid = userCredential.user!.uid;
-
-        // Guardar datos adicionales en Firestore
-        await FirebaseFirestore.instance.collection('usuarios').doc(uid).set({
-          'nombre': _nombreController.text.trim(),
-          'apellido': _apellidoController.text.trim(),
-          'email': _emailController.text.trim(),
-          'fechaRegistro': Timestamp.now(),
-        });
-
-        // Ir a la pantalla principal
-        Navigator.pushNamed(context, '/');
-      }
-    } on FirebaseAuthException catch (e) {
-      String mensaje = e.message ?? "Error desconocido";
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text("Error de registro"),
-            content: Text(mensaje),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Aceptar"),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.grey[200], // Fondo uniforme como en la pantalla de Login
       appBar: AppBar(
         title: const Text('Registrarse', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         centerTitle: true,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -81,6 +34,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Título
                 const Text(
                   "Crea tu cuenta",
                   textAlign: TextAlign.center,
@@ -98,8 +52,12 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     fillColor: Colors.white,
                     prefixIcon: const Icon(Icons.person),
                   ),
-                  validator: (value) =>
-                  value == null || value.isEmpty ? "Por favor ingresa tu nombre" : null,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Por favor ingresa tu nombre";
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 10),
 
@@ -113,12 +71,16 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     fillColor: Colors.white,
                     prefixIcon: const Icon(Icons.person),
                   ),
-                  validator: (value) =>
-                  value == null || value.isEmpty ? "Por favor ingresa tu apellido" : null,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Por favor ingresa tu apellido";
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 10),
 
-                // Correo
+                // Correo Electrónico
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -129,8 +91,12 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     fillColor: Colors.white,
                     prefixIcon: const Icon(Icons.email),
                   ),
-                  validator: (value) =>
-                  value == null || value.isEmpty ? "Por favor ingresa tu correo" : null,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Por favor ingresa tu correo";
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 10),
 
@@ -145,8 +111,12 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     fillColor: Colors.white,
                     prefixIcon: const Icon(Icons.lock),
                   ),
-                  validator: (value) =>
-                  value == null || value.isEmpty ? "Por favor ingresa tu contraseña" : null,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Por favor ingresa tu contraseña";
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 10),
 
@@ -172,7 +142,11 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
                 // Botón de Registro
                 ElevatedButton(
-                  onPressed: _registrarUsuario,
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      Navigator.pushNamed(context, '/');
+                    }
+                  },
                   child: const Text("Registrarse", style: TextStyle(color: Colors.white, fontSize: 18)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
@@ -182,7 +156,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                // Ir al Login
+                // Link para ir al Login
                 TextButton(
                   onPressed: () {
                     Navigator.pushNamed(context, '/login');

@@ -1,11 +1,14 @@
-// archivo: pantallas/inicio_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import '../pantallas/favoritos_screen.dart';
-import '../pantallas/busquedascreen.dart';
-import '../pantallas/cart_screen.dart';
-import '../pantallas/perfil_screen.dart';
-import '../pantallas/custom_bottom_nav_bar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'inicio_content.dart';
+import 'perfil_screen.dart';
+import 'favoritos_screen.dart';
+import 'busquedascreen.dart';
+import 'cart_screen.dart';
+import 'registro_screen.dart';
+import 'custom_bottom_nav_bar.dart';
 import '../pantallas/inicio_content.dart';
 
 class InicioScreen extends StatefulWidget {
@@ -92,7 +95,8 @@ class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderSt
       case 3:
         return const CartScreen();
       case 4:
-        return const PerfilScreen();
+        final user = FirebaseAuth.instance.currentUser;
+        return user != null ? const PerfilScreen() : const registroscreen();
       default:
         return const SizedBox.shrink();
     }
