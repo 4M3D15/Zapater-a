@@ -8,6 +8,8 @@ import 'package:zapato/modelos/producto_model.dart';
 import 'package:zapato/proveedores/cart_provider.dart';
 import 'package:zapato/widgets/animated_favorite_icon.dart';
 import 'package:zapato/widgets/animated_page_wrapper.dart';
+import 'package:zapato/modelos/resena_model.dart';
+import 'package:zapato/widgets/confetti_overlay.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
@@ -58,9 +60,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           .doc(widget.productId)
           .get();
       if (doc.exists) {
-        final data = doc.data();
-        print('🔑 PRODUCTO KEYS: ${data?.keys.toList()}');
-        print('🍀 RAW DATA: $data');
         setState(() {
           producto = Producto.fromFirestore(doc);
           _isLoading = false;
@@ -128,7 +127,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               children: tallas.map((t) => ChoiceChip(
                 label: Text(t),
                 selected: t == tallaSeleccionada,
-                onSelected: (_) => setState(() { tallaSeleccionada = t; Navigator.pop(ctx); }),
+                onSelected: (_) => setState(() {
+                  tallaSeleccionada = t;
+                  Navigator.pop(ctx);
+                }),
               )).toList(),
             ),
           ],
@@ -139,6 +141,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   void _agregarResena() {
     if (_comentarioController.text.trim().isEmpty || _calificacionSeleccionada == 0) return;
+
     setState(() {
       _resenas.add({
         'usuario': 'Anónimo',
@@ -148,6 +151,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       _comentarioController.clear();
       _calificacionSeleccionada = 0;
     });
+
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (_) => ConfettiOverlay(onComplete: () {
+        entry.remove();
+      }),
+    );
+
+    Overlay.of(context).insert(entry);
+
   }
 
   Widget _buildResenasSection() {
@@ -169,22 +183,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               size: 16,
             )),
           ),
-        )).toList(),
+        )),
         const SizedBox(height: 10),
         const Text('Deja tu reseña:', style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 5),
-        TextField(controller: _comentarioController, decoration: const InputDecoration(hintText: 'Escribe un comentario', border: OutlineInputBorder())),
+        TextField(
+          controller: _comentarioController,
+          decoration: const InputDecoration(hintText: 'Escribe un comentario', border: OutlineInputBorder()),
+        ),
         const SizedBox(height: 10),
         Wrap(
-          spacing: 8, runSpacing: 8,
+          spacing: 8,
           children: [
             const Text('Calificación: '),
             ...List.generate(5, (i) => IconButton(
-                icon: Icon(i < _calificacionSeleccionada ? Icons.star : Icons.star_border, color: Colors.amber),
-                onPressed: () => setState(() => _calificacionSeleccionada = i + 1),
-                padding: EdgeInsets.zero, constraints: const BoxConstraints()
+              icon: Icon(i < _calificacionSeleccionada ? Icons.star : Icons.star_border, color: Colors.amber),
+              onPressed: () => setState(() => _calificacionSeleccionada = i + 1),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
             )),
-            ElevatedButton(onPressed: _agregarResena, child: const Text('Agregar'))
+            ElevatedButton(onPressed: _agregarResena, child: const Text('Agregar')),
           ],
         )
       ],
@@ -196,6 +214,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
     final favModel = Provider.of<FavoritosModel>(context);
     final cartProv = Provider.of<CartProvider>(context);
     final isFav = favModel.esFavorito(producto);
@@ -208,52 +227,89 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           title: Text(producto.nombre),
           centerTitle: true,
           actions: [
-            AnimatedFavoriteIcon(esFavorito: isFav, onTap: () {
-              if (isFav) favModel.removerFavorito(producto);
-              else favModel.agregarFavorito(producto);
-            }),
+            AnimatedFavoriteIcon(
+              esFavorito: isFav,
+              onTap: () {
+                if (isFav) favModel.removerFavorito(producto);
+                else favModel.agregarFavorito(producto);
+              },
+            ),
             Stack(alignment: Alignment.center, children: [
               IconButton(key: _cartIconKey, icon: const Icon(Icons.shopping_cart), onPressed: () {}),
-              if (cartCount > 0) Positioned(
-                right: 8, top: 8,
-                child: AnimatedSwitcher(duration: const Duration(milliseconds: 300), child: Container(
-                  key: ValueKey(cartCount), padding: const EdgeInsets.all(6), decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                  child: Text('$cartCount', style: const TextStyle(color: Colors.white, fontSize: 12)),
-                )),
-              ),
+              if (cartCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: Container(
+                      key: ValueKey(cartCount),
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                      child: Text('$cartCount', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    ),
+                  ),
+                ),
             ])
           ],
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Hero(tag: producto.nombre, child: Image.network(producto.imagen, height: 200, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.broken_image, size: 100))),
-            const SizedBox(height: 10),
-            Text(producto.nombre, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 5),
-            Text('\$${producto.precio}', style: const TextStyle(fontSize: 18, color: Colors.green)),
-            const SizedBox(height: 10),
-            Text('Categoría: ${producto.categoria}', style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 5),
-            Text('Descripción: ${producto.descripcion}', style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 5),
-            Text('Color: ${producto.color}', style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 10),
-            ElevatedButton(onPressed: _mostrarSelectorTallas, child: Text('Talla: $tallaSeleccionada')),
-            const SizedBox(height: 10),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              IconButton(icon: const Icon(Icons.remove), onPressed: () => setState(() => cantidad = cantidad>1? cantidad-1:1)),
-              Text('$cantidad', style: const TextStyle(fontSize:18, fontWeight: FontWeight.bold)),
-              IconButton(icon: const Icon(Icons.add), onPressed: () => setState(() => cantidad++)),
-            ]),
-            const SizedBox(height: 10),
-            SizedBox(width: double.infinity, child: ElevatedButton(key: _addBtnKey, onPressed: (){
-              _runAddToCartAnimation(Image.network(producto.imagen, fit: BoxFit.cover));
-              cartProv.addToCart(CartItem(nombre: producto.nombre, imagen: producto.imagen, precio: producto.precio, talla: tallaSeleccionada, cantidad: cantidad));
-            }, child: const Text('Añadir al carrito'))),
-            const SizedBox(height: 16),
-            _buildResenasSection()
-          ]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Hero(
+                tag: producto.nombre,
+                child: Image.network(
+                  producto.imagen,
+                  height: 200,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 100),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(producto.nombre, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 5),
+              Text('\$${producto.precio}', style: const TextStyle(fontSize: 18, color: Colors.green)),
+              const SizedBox(height: 10),
+              Text('Categoría: ${producto.categoria}', style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 5),
+              Text('Descripción: ${producto.descripcion}', style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 5),
+              Text('Color: ${producto.color}', style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 10),
+              ElevatedButton(onPressed: _mostrarSelectorTallas, child: Text('Talla: $tallaSeleccionada')),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(icon: const Icon(Icons.remove), onPressed: () => setState(() => cantidad = cantidad > 1 ? cantidad - 1 : 1)),
+                  Text('$cantidad', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  IconButton(icon: const Icon(Icons.add), onPressed: () => setState(() => cantidad++)),
+                ],
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  key: _addBtnKey,
+                  onPressed: () {
+                    _runAddToCartAnimation(Image.network(producto.imagen, fit: BoxFit.cover));
+                    cartProv.addToCart(CartItem(
+                      nombre: producto.nombre,
+                      imagen: producto.imagen,
+                      precio: producto.precio,
+                      talla: tallaSeleccionada,
+                      cantidad: cantidad,
+                    ));
+                  },
+                  child: const Text('Añadir al carrito'),
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildResenasSection(),
+            ],
+          ),
         ),
       ),
     );
