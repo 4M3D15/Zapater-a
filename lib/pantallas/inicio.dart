@@ -1,29 +1,30 @@
+// lib/pantallas/inicio.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zapato/modelos/productos_model.dart';
 import 'package:zapato/proveedores/cart_provider.dart';
 import 'package:zapato/pantallas/cart_screen.dart';
-import 'package:zapato/pantallas/perfil_screen.dart';
 import 'package:zapato/pantallas/favoritos_screen.dart';
 import 'package:zapato/pantallas/busquedascreen.dart';
 import 'package:zapato/pantallas/inicio_content.dart';
+import 'package:zapato/pantallas/perfil_screen.dart';
 import 'package:zapato/widgets/animations.dart';
 
-class Inicio extends StatefulWidget {
-  const Inicio({Key? key}) : super(key: key);
+class InicioScreen extends StatefulWidget {
+  const InicioScreen({Key? key}) : super(key: key);
 
   @override
-  State<Inicio> createState() => _InicioState();
+  State<InicioScreen> createState() => _InicioScreenState();
 }
 
-class _InicioState extends State<Inicio> {
+class _InicioScreenState extends State<InicioScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = <Widget>[
     const InicioContent(),
     const BusquedaScreen(),
-    FavoritosScreen(),
-    CartScreen(),
+    const FavoritosScreen(),
+    const CartScreen(),
     const PerfilScreen(),
   ];
 
@@ -59,21 +60,16 @@ class _InicioState extends State<Inicio> {
             topRight: Radius.circular(25),
           ),
           boxShadow: const [
-            BoxShadow(
-              color: Colors.black45,
-              blurRadius: 10,
-              offset: Offset(0, -1),
-            ),
+            BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, -1)),
           ],
         ),
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Consumer<CartProvider>(
           builder: (context, cartProvider, child) {
-            final int itemCount = cartProvider.items.fold(
+            final itemCount = cartProvider.items.fold<int>(
               0,
                   (sum, item) => sum + item.cantidad,
             );
-
             return BottomNavigationBar(
               type: BottomNavigationBarType.fixed,
               backgroundColor: Colors.transparent,
@@ -91,10 +87,7 @@ class _InicioState extends State<Inicio> {
                     alignment: Alignment.bottomCenter,
                     children: const [
                       Icon(Icons.home, size: 30),
-                      Positioned(
-                        top: -4,
-                        child: Icon(Icons.circle, size: 6, color: Colors.redAccent),
-                      ),
+                      Positioned(top: -4, child: Icon(Icons.circle, size: 6, color: Colors.redAccent)),
                     ],
                   ),
                   label: 'Inicio',
@@ -105,10 +98,7 @@ class _InicioState extends State<Inicio> {
                     alignment: Alignment.bottomCenter,
                     children: const [
                       Icon(Icons.search, size: 30),
-                      Positioned(
-                        top: -4,
-                        child: Icon(Icons.circle, size: 6, color: Colors.redAccent),
-                      ),
+                      Positioned(top: -4, child: Icon(Icons.circle, size: 6, color: Colors.redAccent)),
                     ],
                   ),
                   label: 'Buscar',
@@ -119,10 +109,7 @@ class _InicioState extends State<Inicio> {
                     alignment: Alignment.bottomCenter,
                     children: const [
                       Icon(Icons.favorite, size: 30),
-                      Positioned(
-                        top: -4,
-                        child: Icon(Icons.circle, size: 6, color: Colors.redAccent),
-                      ),
+                      Positioned(top: -4, child: Icon(Icons.circle, size: 6, color: Colors.redAccent)),
                     ],
                   ),
                   label: 'Favoritos',
@@ -133,27 +120,14 @@ class _InicioState extends State<Inicio> {
                       const Icon(Icons.shopping_bag_outlined, size: 28),
                       if (itemCount > 0)
                         Positioned(
-                          right: 0,
-                          top: 0,
+                          right: 0, top: 0,
                           child: Container(
                             padding: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(
-                              color: Colors.redAccent,
-                              shape: BoxShape.circle,
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
-                            ),
-                            child: Text(
-                              '$itemCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+                            decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                            child: Text('$itemCount',
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center),
                           ),
                         ),
                     ],
@@ -163,27 +137,14 @@ class _InicioState extends State<Inicio> {
                       const Icon(Icons.shopping_bag, size: 30),
                       if (itemCount > 0)
                         Positioned(
-                          right: 0,
-                          top: 0,
+                          right: 0, top: 0,
                           child: Container(
                             padding: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(
-                              color: Colors.redAccent,
-                              shape: BoxShape.circle,
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
-                            ),
-                            child: Text(
-                              '$itemCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+                            decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                            child: Text('$itemCount',
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center),
                           ),
                         ),
                     ],
@@ -196,10 +157,7 @@ class _InicioState extends State<Inicio> {
                     alignment: Alignment.bottomCenter,
                     children: const [
                       Icon(Icons.person, size: 30),
-                      Positioned(
-                        top: -4,
-                        child: Icon(Icons.circle, size: 6, color: Colors.redAccent),
-                      ),
+                      Positioned(top: -4, child: Icon(Icons.circle, size: 6, color: Colors.redAccent)),
                     ],
                   ),
                   label: 'Perfil',

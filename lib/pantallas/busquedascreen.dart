@@ -17,6 +17,7 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
   final FirestoreService _firestoreService = FirestoreService();
   List<Producto> productos = []; // Lista de productos del tipo Producto
   List<Producto> filteredProductos = []; // Lista filtrada de productos
+  List<String> sugerencias = []; // Lista de sugerencias de búsqueda
 
   @override
   void initState() {
@@ -32,13 +33,18 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
     });
   }
 
-  void _searchProducts() {
-    String query = _searchController.text.toLowerCase();
+  void _searchProducts(String query) {
     setState(() {
       filteredProductos = productos.where((producto) {
         // Filtrando los productos por nombre
-        return producto.nombre.toLowerCase().contains(query);
+        return producto.nombre.toLowerCase().contains(query.toLowerCase());
       }).toList();
+
+      // Generar sugerencias de búsqueda
+      sugerencias = productos
+          .where((producto) => producto.nombre.toLowerCase().startsWith(query.toLowerCase()))
+          .map((producto) => producto.nombre)
+          .toList();
     });
   }
 
@@ -67,10 +73,29 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
                 ),
               ),
               onChanged: (value) {
-                _searchProducts();
+                _searchProducts(value);
               },
             ),
           ),
+          // Mostrar sugerencias de búsqueda
+          if (sugerencias.isNotEmpty)
+            Container(
+              height: 100, // Altura fija para las sugerencias
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: ListView.builder(
+                itemCount: sugerencias.length,
+                itemBuilder: (context, index) {
+                  final sugerencia = sugerencias[index];
+                  return ListTile(
+                    title: Text(sugerencia),
+                    onTap: () {
+                      _searchController.text = sugerencia;
+                      _searchProducts(sugerencia);
+                    },
+                  );
+                },
+              ),
+            ),
           Expanded(
             child: filteredProductos.isEmpty
                 ? const Center(
@@ -92,7 +117,7 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
                 final producto = filteredProductos[index];
                 return GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed(context, '/product', arguments: producto);
+                    Navigator.pushNamed(context, '/product', arguments: producto.id);
                   },
                   child: Card(
                     elevation: 4,
