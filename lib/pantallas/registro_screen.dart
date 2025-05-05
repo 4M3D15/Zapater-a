@@ -1,176 +1,139 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class RegistroScreen extends StatefulWidget {
-  const RegistroScreen({super.key});
+
+class registroscreen extends StatefulWidget {
+  const registroscreen({super.key});
 
   @override
-  _RegistroScreenState createState() => _RegistroScreenState();
+  State<registroscreen> createState() => _PerfilScreenState();
 }
 
-class _RegistroScreenState extends State<RegistroScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nombreController = TextEditingController();
-  final TextEditingController _apellidoController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+class _PerfilScreenState extends State<registroscreen> with SingleTickerProviderStateMixin {
+  bool _isLoading = true;
+  Map<String, dynamic>? _userData;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final doc = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
+    if (doc.exists) {
+      setState(() {
+        _userData = doc.data();
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _cerrarSesion() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushReplacementNamed('/login');
+  }
 
   @override
   Widget build(BuildContext context) {
+    final dateFormat = DateFormat.yMMMMd('es_ES');
+
     return Scaffold(
-      backgroundColor: Colors.grey[200], // Fondo uniforme como en la pantalla de Login
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Registrarse', style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
+        title: const Text("Perfil"),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Título
-                const Text(
-                  "Crea tu cuenta",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-
-                // Nombre
-                TextFormField(
-                  controller: _nombreController,
-                  decoration: InputDecoration(
-                    labelText: "Nombre",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    filled: true,
-                    fillColor: Colors.white,
-                    prefixIcon: const Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Por favor ingresa tu nombre";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 10),
-
-                // Apellido
-                TextFormField(
-                  controller: _apellidoController,
-                  decoration: InputDecoration(
-                    labelText: "Apellido",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    filled: true,
-                    fillColor: Colors.white,
-                    prefixIcon: const Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Por favor ingresa tu apellido";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 10),
-
-                // Correo Electrónico
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: "Correo Electrónico",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    filled: true,
-                    fillColor: Colors.white,
-                    prefixIcon: const Icon(Icons.email),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Por favor ingresa tu correo";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 10),
-
-                // Contraseña
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: "Contraseña",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    filled: true,
-                    fillColor: Colors.white,
-                    prefixIcon: const Icon(Icons.lock),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Por favor ingresa tu contraseña";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 10),
-
-                // Confirmar Contraseña
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: "Confirmar Contraseña",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    filled: true,
-                    fillColor: Colors.white,
-                    prefixIcon: const Icon(Icons.lock),
-                  ),
-                  validator: (value) {
-                    if (value != _passwordController.text) {
-                      return "Las contraseñas no coinciden";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Botón de Registro
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      Navigator.pushNamed(context, '/');
-                    }
-                  },
-                  child: const Text("Registrarse", style: TextStyle(color: Colors.white, fontSize: 18)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Link para ir al Login
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/login');
-                  },
-                  child: const Text(
-                    "¿Ya tienes cuenta? Inicia sesión",
-                    style: TextStyle(fontSize: 16, color: Colors.black),
-                  ),
-                ),
-              ],
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
+        children: [
+          // Fondo tipo glassmorphism
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1F1F1F), Color(0xFF121212)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
           ),
-        ),
+          // Contenido
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 100, 16, 32),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.white24,
+                    child: Icon(Icons.person, size: 40, color: Colors.white70),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "${_userData!['nombre']} ${_userData!['apellido']}",
+                    style: const TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _userData!['email'],
+                    style: const TextStyle(color: Colors.white60),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Miembro desde: ${dateFormat.format((_userData!['fechaRegistro'] as Timestamp).toDate())}',
+                    style: const TextStyle(color: Colors.white60, fontSize: 12),
+                  ),
+                  const SizedBox(height: 30),
+
+                  _buildOption(Icons.edit, "Editar perfil", () {
+                    // Navegar a editar perfil
+                  }),
+                  _buildOption(Icons.lock, "Cambiar contraseña", () {
+                    // Navegar a cambiar contraseña
+                  }),
+                  _buildOption(Icons.shopping_bag, "Mis pedidos", () {
+                    // Navegar a pantalla de pedidos
+                  }),
+                  _buildOption(Icons.logout, "Cerrar sesión", _cerrarSesion),
+                ],
+              ),
+            ),
+          )
+        ],
       ),
+    );
+  }
+
+  Widget _buildOption(IconData icon, String label, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.white70),
+      title: Text(label, style: const TextStyle(color: Colors.white)),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white38),
+      onTap: onTap,
     );
   }
 }

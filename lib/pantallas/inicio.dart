@@ -1,10 +1,11 @@
 // archivo: pantallas/inicio_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:zapato/pantallas/perfil_screen.dart';
 import '../pantallas/favoritos_screen.dart';
 import '../pantallas/busquedascreen.dart';
 import '../pantallas/cart_screen.dart';
-import '../pantallas/perfil_screen.dart';
+import '../pantallas/registro_screen.dart';
 import '../pantallas/custom_bottom_nav_bar.dart';
 import '../pantallas/inicio_content.dart';
 

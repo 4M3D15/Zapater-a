@@ -41,8 +41,8 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const InicioScreen(), // <-- Cambiado aquí
         '/cart': (context) => const CartScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/registro': (context) => const RegistroScreen(),
+        '/login': (context) => const loginscreen(),
+        '/registro': (context) => const registroscreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/product') {

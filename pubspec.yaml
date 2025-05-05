@@ -6,12 +6,12 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.17.0 <4.0.0"  # Usa una versión de SDK compatible con las librerías anteriores.
+  sdk: ">=2.17.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8  # Actualiza a esta versión
+  cupertino_icons: ^1.0.8
   provider: ^6.0.0
   carousel_slider: ^4.2.1
   flutter_typeahead: ^5.2.0
@@ -22,15 +22,14 @@ dependencies:
   animations: ^2.0.7
   audioplayers: ^5.2.1
   confetti: ^0.7.0
+  intl: ^0.18.1  # ✅ ya está aquí correctamente
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  lints: ^5.1.1  # Una versión anterior
 
 flutter:
   uses-material-design: true
   assets:
     - assets/sounds/explosion.mp3
-
