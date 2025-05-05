@@ -1,6 +1,7 @@
-// archivo: widgets/custom_bottom_nav_bar.dart
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:zapato/proveedores/cart_provider.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -22,6 +23,11 @@ class CustomBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cartItemCount = context.watch<CartProvider>().items.fold<int>(
+      0,
+          (total, item) => total + item.cantidad,
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0, left: 16.0, right: 16.0),
       child: ClipRRect(
@@ -40,6 +46,7 @@ class CustomBottomNavBar extends StatelessWidget {
               children: List.generate(_items.length, (index) {
                 final item = _items[index];
                 final isSelected = index == currentIndex;
+                final isCart = index == 3;
 
                 return GestureDetector(
                   onTap: () => onTap(index),
@@ -54,7 +61,13 @@ class CustomBottomNavBar extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        isCart
+                            ? _AnimatedCartIconWithBadge(
+                          icon: item.icon,
+                          count: cartItemCount,
+                          isSelected: isSelected,
+                        )
+                            : Icon(
                           item.icon,
                           color: isSelected ? Colors.white : Colors.grey[400],
                         ),
@@ -83,6 +96,130 @@ class CustomBottomNavBar extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AnimatedCartIconWithBadge extends StatefulWidget {
+  final IconData icon;
+  final int count;
+  final bool isSelected;
+
+  const _AnimatedCartIconWithBadge({
+    required this.icon,
+    required this.count,
+    required this.isSelected,
+  });
+
+  @override
+  State<_AnimatedCartIconWithBadge> createState() => _AnimatedCartIconWithBadgeState();
+}
+
+class _AnimatedCartIconWithBadgeState extends State<_AnimatedCartIconWithBadge>
+    with TickerProviderStateMixin {
+  late AnimationController _bounceController;
+  late Animation<double> _scaleAnimation;
+
+  late AnimationController _colorController;
+  late Animation<Color?> _colorAnimation;
+
+  int _previousCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2)
+        .chain(CurveTween(curve: Curves.easeOutBack))
+        .animate(_bounceController);
+
+    _colorController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    _colorAnimation = ColorTween(
+      begin: Colors.grey[400],
+      end: Colors.orangeAccent,
+    ).animate(_colorController);
+  }
+
+  @override
+  void didUpdateWidget(covariant _AnimatedCartIconWithBadge oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.count != _previousCount) {
+      _previousCount = widget.count;
+      _bounceController.forward(from: 0);
+      _colorController.forward(from: 0).then((_) => _colorController.reverse());
+    }
+  }
+
+  @override
+  void dispose() {
+    _bounceController.dispose();
+    _colorController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_scaleAnimation, _colorAnimation]),
+      builder: (context, child) {
+        return ScaleTransition(
+          scale: _scaleAnimation,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Icon(
+                widget.icon,
+                color: widget.isSelected
+                    ? Colors.white
+                    : _colorAnimation.value ?? Colors.grey[400],
+              ),
+              if (widget.count > 0)
+                Positioned(
+                  top: -6,
+                  right: -6,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, animation) {
+                      return ScaleTransition(scale: animation, child: child);
+                    },
+                    child: Container(
+                      key: ValueKey(widget.count),
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 20,
+                        minHeight: 20,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${widget.count}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
