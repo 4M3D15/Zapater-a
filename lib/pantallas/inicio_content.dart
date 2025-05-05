@@ -6,7 +6,9 @@ import '../modelos/favoritos_model.dart';
 import '../widgets/animated_favorite_icon.dart';
 
 class InicioContent extends StatefulWidget {
-  const InicioContent({Key? key}) : super(key: key);
+  final ScrollController scrollController;
+
+  const InicioContent({Key? key, required this.scrollController}) : super(key: key);
 
   @override
   _InicioContentState createState() => _InicioContentState();
@@ -55,6 +57,7 @@ class _InicioContentState extends State<InicioContent> {
     final carouselHeight = size.height * 0.28;
 
     return SingleChildScrollView(
+      controller: widget.scrollController,
       padding: const EdgeInsets.only(bottom: 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -185,8 +188,7 @@ class _InicioContentState extends State<InicioContent> {
                       children: [
                         Expanded(
                           child: ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(12)),
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                             child: Stack(
                               fit: StackFit.expand,
                               children: [
@@ -217,8 +219,7 @@ class _InicioContentState extends State<InicioContent> {
                             children: [
                               Text(
                                 p.nombre,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600),
+                                style: const TextStyle(fontWeight: FontWeight.w600),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -226,8 +227,9 @@ class _InicioContentState extends State<InicioContent> {
                               Text(
                                 '\$${p.precio.toStringAsFixed(2)}',
                                 style: TextStyle(
-                                    color: Colors.green.shade700,
-                                    fontWeight: FontWeight.bold),
+                                  color: Colors.green.shade700,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ],
                           ),

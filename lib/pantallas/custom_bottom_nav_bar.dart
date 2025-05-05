@@ -1,157 +1,98 @@
-// archivo: widgets/barra_navegacion.dart
+// archivo: widgets/custom_bottom_nav_bar.dart
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:zapato/proveedores/cart_provider.dart';
 
-class BarraNavegacionInferior extends StatelessWidget {
+class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
-  final bool isVisible;
 
-  const BarraNavegacionInferior({
+  const CustomBottomNavBar({
     Key? key,
     required this.currentIndex,
     required this.onTap,
-    required this.isVisible,
   }) : super(key: key);
+
+  final List<_NavBarItemData> _items = const [
+    _NavBarItemData(icon: Icons.home, label: 'Inicio'),
+    _NavBarItemData(icon: Icons.search, label: 'Buscar'),
+    _NavBarItemData(icon: Icons.favorite_border, label: 'Favoritos'),
+    _NavBarItemData(icon: Icons.shopping_bag_outlined, label: 'Bolsa'),
+    _NavBarItemData(icon: Icons.person_outline, label: 'Perfil'),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSlide(
-      duration: const Duration(milliseconds: 300),
-      offset: isVisible ? Offset.zero : const Offset(0, 1),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(25),
-            topRight: Radius.circular(25),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 10,
-              offset: Offset(0, -2),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0, left: 16.0, right: 16.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
             ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(25),
-            topRight: Radius.circular(25),
-          ),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Consumer<CartProvider>(
-              builder: (context, cartProvider, child) {
-                final itemCount = cartProvider.items.fold<int>(
-                  0,
-                      (sum, item) => sum + item.cantidad,
-                );
-                return BottomNavigationBar(
-                  type: BottomNavigationBarType.fixed,
-                  backgroundColor: Colors.black.withOpacity(0.5),
-                  elevation: 0,
-                  currentIndex: currentIndex,
-                  onTap: onTap,
-                  showUnselectedLabels: false,
-                  selectedLabelStyle: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(_items.length, (index) {
+                final item = _items[index];
+                final isSelected = index == currentIndex;
+
+                return GestureDetector(
+                  onTap: () => onTap(index),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.white.withOpacity(0.1)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          item.icon,
+                          color: isSelected ? Colors.white : Colors.grey[400],
+                        ),
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                          child: isSelected
+                              ? Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Text(
+                              item.label,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          )
+                              : const SizedBox.shrink(),
+                        ),
+                      ],
+                    ),
                   ),
-                  selectedItemColor: Colors.white,
-                  unselectedItemColor: Colors.white70,
-                  items: [
-                    BottomNavigationBarItem(
-                      icon: const Icon(Icons.home_rounded, size: 26),
-                      activeIcon: const Icon(Icons.home, size: 28),
-                      label: 'Inicio',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: const Icon(Icons.search_rounded, size: 26),
-                      activeIcon: const Icon(Icons.search, size: 28),
-                      label: 'Buscar',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: const Icon(Icons.favorite_outline_rounded, size: 26),
-                      activeIcon: const Icon(Icons.favorite_rounded, size: 28),
-                      label: 'Favoritos',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Stack(
-                        children: [
-                          const Icon(Icons.shopping_bag_outlined, size: 26),
-                          if (itemCount > 0)
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(2),
-                                decoration: const BoxDecoration(
-                                  color: Colors.lightBlueAccent,
-                                  shape: BoxShape.circle,
-                                ),
-                                constraints: const BoxConstraints(
-                                  minWidth: 16,
-                                  minHeight: 16,
-                                ),
-                                child: Text(
-                                  '$itemCount',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      activeIcon: Stack(
-                        children: [
-                          const Icon(Icons.shopping_bag_rounded, size: 28),
-                          if (itemCount > 0)
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(2),
-                                decoration: const BoxDecoration(
-                                  color: Colors.lightBlueAccent,
-                                  shape: BoxShape.circle,
-                                ),
-                                constraints: const BoxConstraints(
-                                  minWidth: 16,
-                                  minHeight: 16,
-                                ),
-                                child: Text(
-                                  '$itemCount',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      label: 'Bolsa',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: const Icon(Icons.person_outline_rounded, size: 26),
-                      activeIcon: const Icon(Icons.person_rounded, size: 28),
-                      label: 'Perfil',
-                    ),
-                  ],
                 );
-              },
+              }),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+class _NavBarItemData {
+  final IconData icon;
+  final String label;
+
+  const _NavBarItemData({
+    required this.icon,
+    required this.label,
+  });
 }

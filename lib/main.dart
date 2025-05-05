@@ -1,10 +1,10 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'package:zapato/pantallas/inicio.dart';
 import 'firebase_options.dart';
 
-import 'pantallas/main_screen.dart';
+import 'pantallas/inicio.dart'; // <-- Cambiado aquí
 import 'pantallas/cart_screen.dart';
 import 'pantallas/login_screen.dart';
 import 'pantallas/registro_screen.dart';
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
       title: 'Zapato',
       initialRoute: '/',
       routes: {
-        '/': (context) => const MainScreen(),
+        '/': (context) => const InicioScreen(), // <-- Cambiado aquí
         '/cart': (context) => const CartScreen(),
         '/login': (context) => const LoginScreen(),
         '/registro': (context) => const RegistroScreen(),
