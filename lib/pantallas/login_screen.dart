@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,16 +13,61 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> _iniciarSesion() async {
+    try {
+      final String email = emailController.text.trim();
+      final String password = passwordController.text.trim();
+
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+
+      // Redirige a InicioContent después de iniciar sesión
+      Navigator.pushReplacementNamed(context, '/inicio.dart');
+    } on FirebaseAuthException catch (e) {
+      String mensaje = '';
+      switch (e.code) {
+        case 'user-not-found':
+          mensaje = 'No se encontró usuario con ese correo.';
+          break;
+        case 'wrong-password':
+          mensaje = 'Contraseña incorrecta.';
+          break;
+        case 'invalid-email':
+          mensaje = 'Correo inválido.';
+          break;
+        default:
+          mensaje = 'Error al iniciar sesión: ${e.message}';
+      }
+
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("Error"),
+            content: Text(mensaje),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Aceptar"),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200], // Fondo uniforme con la app
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: Text("Iniciar Sesión", style: TextStyle(color: Colors.black)),
+        title: const Text("Iniciar Sesión", style: TextStyle(color: Colors.black)),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: Center(
         child: Padding(
@@ -46,14 +92,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     labelText: "Correo Electrónico",
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    prefixIcon: Icon(Icons.email, color: Colors.black54),
+                    prefixIcon: const Icon(Icons.email, color: Colors.black54),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Por favor ingresa tu correo";
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                  value == null || value.isEmpty ? "Por favor ingresa tu correo" : null,
                 ),
                 const SizedBox(height: 15),
 
@@ -64,14 +106,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     labelText: "Contraseña",
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    prefixIcon: Icon(Icons.lock, color: Colors.black54),
+                    prefixIcon: const Icon(Icons.lock, color: Colors.black54),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Por favor ingresa tu contraseña";
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                  value == null || value.isEmpty ? "Por favor ingresa tu contraseña" : null,
                 ),
                 const SizedBox(height: 20),
 
@@ -79,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      Navigator.pushReplacementNamed(context, '/');
+                      _iniciarSesion();
                     }
                   },
                   style: ElevatedButton.styleFrom(
