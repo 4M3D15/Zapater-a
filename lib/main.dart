@@ -9,7 +9,7 @@ import 'pantallas/cart_screen.dart';
 import 'pantallas/login_screen.dart';
 import 'pantallas/registro_screen.dart';
 import 'pantallas/product_detail_screen.dart';
-import 'pantallas/editar_perfil_screen.dart'; // ✅ AÑADIDO
+import 'pantallas/perfil_screen.dart'; // Asegúrate de que esta línea esté aquí
 
 import 'proveedores/cart_provider.dart';
 import 'modelos/favoritos_model.dart';
@@ -17,8 +17,10 @@ import 'modelos/productos_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializa Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await initializeDateFormatting('es'); // ✅ para DateFormat en español
+  await initializeDateFormatting('es'); // Formato de fechas en español
 
   runApp(
     MultiProvider(
@@ -40,13 +42,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Zapato',
-      initialRoute: '/',
+      initialRoute: '/login', // Cambiar a '/perfil' si el usuario ya está autenticado
       routes: {
         '/': (context) => const InicioScreen(),
         '/cart': (context) => const CartScreen(),
-        '/login': (context) => const loginscreen(),
-        '/registro': (context) => const registroscreen(),
-        '/editar-perfil': (context) => const EditarPerfilScreen(), // ✅ Ruta nueva
+        '/login': (context) => const LoginScreen(),
+        '/registro': (context) => const RegistroScreen(),
+        '/perfil': (context) => const ProfileScreen(), // Ruta hacia ProfileScreen
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/product') {

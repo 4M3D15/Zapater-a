@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:zapato/pantallas/editar_perfil_screen.dart';
 
 import 'inicio_content.dart';
 import 'perfil_screen.dart';
@@ -96,7 +97,7 @@ class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderSt
         return const CartScreen();
       case 4:
         final user = FirebaseAuth.instance.currentUser;
-        return user != null ? const PerfilScreen() : const registroscreen();
+        return user != null ? const EditarPerfilScreen() : const RegistroScreen();
       default:
         return const SizedBox.shrink();
     }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegistroScreen extends StatefulWidget {
   const RegistroScreen({super.key});
@@ -15,16 +17,64 @@ class _RegistroScreenState extends State<RegistroScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  bool _isLoading = false;
+
+  // Método para registrar al usuario en Firebase Auth y luego guardar la info en Firestore
+  Future<void> _registerUser() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        // Crear el usuario con email y contraseña
+        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+
+        // Obtener el usuario creado
+        User? user = userCredential.user;
+
+        // Verifica si el usuario fue creado
+        if (user != null) {
+          // Guardar los datos del usuario en Firestore
+          await _firestore.collection('usuarios').doc(user.uid).set({
+            'nombre': _nombreController.text,
+            'apellido': _apellidoController.text,
+            'correo': _emailController.text,
+            'fechaRegistro': FieldValue.serverTimestamp(), // Timestamp de registro
+          });
+
+          // Redirigir a la pantalla de inicio o cualquier otra pantalla
+          Navigator.pushReplacementNamed(context, '/');
+        }
+      } on FirebaseAuthException catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.message ?? 'Error al registrar el usuario'),
+          backgroundColor: Colors.red,
+        ));
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200], // Fondo uniforme como en la pantalla de Login
+      backgroundColor: Colors.grey[200], // Fondo uniforme
       appBar: AppBar(
         title: const Text('Registrarse', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         centerTitle: true,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -34,7 +84,6 @@ class _RegistroScreenState extends State<RegistroScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Título
                 const Text(
                   "Crea tu cuenta",
                   textAlign: TextAlign.center,
@@ -142,12 +191,10 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
                 // Botón de Registro
                 ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      Navigator.pushNamed(context, '/');
-                    }
-                  },
-                  child: const Text("Registrarse", style: TextStyle(color: Colors.white, fontSize: 18)),
+                  onPressed: _isLoading ? null : _registerUser,
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("Registrarse", style: TextStyle(color: Colors.white, fontSize: 18)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 15),

@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'login_screen.dart';
 import 'registro_screen.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class PantallaBienvenida extends StatelessWidget {
+  const PantallaBienvenida({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: const Text('Perfil', style: TextStyle(color: Colors.black)),
+        title: const Text('Bienvenido', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         centerTitle: true,
         elevation: 0,
@@ -23,17 +24,15 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(height: 20),
             const Text(
               "Bienvenido a tu perfil",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
             ),
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                // Aquí va la navegación al formulario real de inicio de sesión
-                Navigator.pushReplacementNamed(context, '/iniciar-sesion');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
@@ -69,4 +68,3 @@ class LoginScreen extends StatelessWidget {
     );
   }
 }
-
