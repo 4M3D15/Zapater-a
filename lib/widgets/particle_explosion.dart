@@ -25,7 +25,7 @@ class _ParticleExplosionState extends State<ParticleExplosion>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     )..addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -33,9 +33,10 @@ class _ParticleExplosionState extends State<ParticleExplosion>
       }
     });
 
-    _particles = List.generate(30, (_) {
+    _particles = List.generate(35, (_) {
       final angle = _random.nextDouble() * 2 * pi;
-      final speed = _random.nextDouble() * 4 + 2;
+      final speed = _random.nextDouble() * 6 + 2; // Más rango
+      final size = _random.nextDouble() * 2 + 2;
       final color = Color.fromARGB(
         255,
         _random.nextInt(256),
@@ -45,6 +46,7 @@ class _ParticleExplosionState extends State<ParticleExplosion>
       return _Particle(
         direction: Offset(cos(angle), sin(angle)) * speed,
         color: color,
+        size: size,
       );
     });
 
@@ -60,14 +62,14 @@ class _ParticleExplosionState extends State<ParticleExplosion>
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: widget.position.dx - 20,
-      top: widget.position.dy - 20,
+      left: widget.position.dx - 30,
+      top: widget.position.dy - 30,
       child: SizedBox(
-        width: 40,
-        height: 40,
+        width: 60,
+        height: 60,
         child: AnimatedBuilder(
           animation: _controller,
-          builder: (context, child) {
+          builder: (_, __) {
             return CustomPaint(
               painter: _ParticlePainter(
                 particles: _particles,
@@ -84,22 +86,30 @@ class _ParticleExplosionState extends State<ParticleExplosion>
 class _Particle {
   final Offset direction;
   final Color color;
+  final double size;
 
-  _Particle({required this.direction, required this.color});
+  _Particle({
+    required this.direction,
+    required this.color,
+    required this.size,
+  });
 }
 
 class _ParticlePainter extends CustomPainter {
   final List<_Particle> particles;
   final double progress;
 
-  _ParticlePainter({required this.particles, required this.progress});
+  _ParticlePainter({
+    required this.particles,
+    required this.progress,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     for (final p in particles) {
       final offset = p.direction * progress * 10;
       final paint = Paint()..color = p.color.withOpacity(1 - progress);
-      canvas.drawCircle(size.center(offset), 2.5 * (1 - progress), paint);
+      canvas.drawCircle(size.center(offset), p.size * (1 - progress), paint);
     }
   }
 

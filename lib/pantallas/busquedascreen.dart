@@ -1,9 +1,12 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../modelos/favoritos_model.dart';
 import '../modelos/producto_model.dart';
 import '../widgets/animated_favorite_icon.dart';
 import '../Servicios/firestore_service.dart';
+import '../widgets/particle_explosion.dart';
+import '../widgets/animations.dart'; // <-- Importa aquí
 
 class BusquedaScreen extends StatefulWidget {
   const BusquedaScreen({Key? key}) : super(key: key);
@@ -12,12 +15,14 @@ class BusquedaScreen extends StatefulWidget {
   _BusquedaScreenState createState() => _BusquedaScreenState();
 }
 
-class _BusquedaScreenState extends State<BusquedaScreen> {
+class _BusquedaScreenState extends State<BusquedaScreen>
+    with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final FirestoreService _firestoreService = FirestoreService();
   List<Producto> productos = [];
   List<Producto> filteredProductos = [];
   List<String> sugerencias = [];
+  OverlayEntry? _explosionOverlay;
 
   @override
   void initState() {
@@ -46,142 +51,194 @@ class _BusquedaScreenState extends State<BusquedaScreen> {
     });
   }
 
+  void _mostrarExplosion(Offset globalPosition) {
+    _explosionOverlay = OverlayEntry(
+      builder: (_) => ParticleExplosion(
+        position: globalPosition,
+        onComplete: () {
+          _explosionOverlay?.remove();
+          _explosionOverlay = null;
+        },
+      ),
+    );
+    Overlay.of(context).insert(_explosionOverlay!);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Busca tu producto...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+    return SlideFadeIn(
+      index: 0,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12.0),
+        child: Column(
+          children: [
+            // ────── Campo de búsqueda ──────
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Busca tu producto...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onChanged: _searchProducts,
+              ),
+            ),
+
+            // ────── Sugerencias ──────
+            if (sugerencias.isNotEmpty)
+              Container(
+                constraints: const BoxConstraints(maxHeight: 120),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: ListView.builder(
+                  itemCount: sugerencias.length,
+                  itemBuilder: (_, i) {
+                    final s = sugerencias[i];
+                    return ListTile(
+                      title: Text(s),
+                      onTap: () {
+                        _searchController.text = s;
+                        _searchProducts(s);
+                      },
+                    );
+                  },
                 ),
               ),
-              onChanged: _searchProducts,
-            ),
-          ),
-          if (sugerencias.isNotEmpty)
-            Container(
-              constraints: const BoxConstraints(maxHeight: 120),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: ListView.builder(
-                itemCount: sugerencias.length,
-                itemBuilder: (_, i) {
-                  final s = sugerencias[i];
-                  return ListTile(
-                    title: Text(s),
-                    onTap: () {
-                      _searchController.text = s;
-                      _searchProducts(s);
-                    },
-                  );
-                },
-              ),
-            ),
-          const SizedBox(height: 10),
-          filteredProductos.isEmpty
-              ? const Padding(
-            padding: EdgeInsets.only(top: 20),
-            child: Text(
-              'No se encontraron productos',
-              style: TextStyle(fontSize: 18),
-            ),
-          )
-              : Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.8,
-              ),
-              itemCount: filteredProductos.length,
-              itemBuilder: (_, idx) {
-                final producto = filteredProductos[idx];
-                return GestureDetector(
-                  onTap: () => Navigator.pushNamed(
-                    context,
-                    '/product',
-                    arguments: producto.id,
+
+            const SizedBox(height: 10),
+
+            // ────── Resultados / Mensaje vacío ──────
+            if (filteredProductos.isEmpty)
+              SlideFadeInFromBottom(
+                delay: const Duration(milliseconds: 100),
+                child: const Padding(
+                  padding: EdgeInsets.only(top: 20),
+                  child: Text(
+                    'No se encontraron productos',
+                    style: TextStyle(fontSize: 18),
                   ),
-                  child: Card(
-                    elevation: 3,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: Stack(
+                ),
+              )
+            else
+              Expanded(
+                child: GridView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 0.8,
+                  ),
+                  itemCount: filteredProductos.length,
+                  itemBuilder: (_, idx) {
+                    final producto = filteredProductos[idx];
+                    return SlideFadeInFromBottom(
+                      delay: Duration(milliseconds: 100 * (idx + 1)),
+                      child: GestureDetector(
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          '/product',
+                          arguments: producto.id,
+                        ),
+                        child: Card(
+                          elevation: 3,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(10)),
-                                child: producto.imagen.isNotEmpty
-                                    ? Image.network(
-                                  producto.imagen,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                )
-                                    : const Icon(Icons.image,
-                                    size: 50, color: Colors.grey),
+                              Expanded(
+                                child: Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(
+                                          top: Radius.circular(10)),
+                                      child: producto.imagen.isNotEmpty
+                                          ? Image.network(
+                                        producto.imagen,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                      )
+                                          : const Icon(Icons.image,
+                                          size: 50, color: Colors.grey),
+                                    ),
+                                    Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: Consumer<FavoritosModel>(
+                                        builder: (_, favs, __) {
+                                          final isFav =
+                                          favs.esFavorito(producto);
+                                          return GestureDetector(
+                                            onTap: () {
+                                              final renderBox = context
+                                                  .findRenderObject()
+                                              as RenderBox?;
+                                              if (renderBox != null) {
+                                                final position = renderBox
+                                                    .localToGlobal(
+                                                    const Offset(0, 0));
+                                                _mostrarExplosion(position);
+                                              }
+                                              if (isFav) {
+                                                favs.removerFavorito(producto);
+                                              } else {
+                                                favs.agregarFavorito(producto);
+                                              }
+                                            },
+                                            child: AnimatedFavoriteIcon(
+                                              esFavorito: isFav,
+                                              onTap: () {},
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: Consumer<FavoritosModel>(
-                                  builder: (_, favs, __) {
-                                    final isFav =
-                                    favs.esFavorito(producto);
-                                    return AnimatedFavoriteIcon(
-                                      esFavorito: isFav,
-                                      onTap: () => isFav
-                                          ? favs.removerFavorito(producto)
-                                          : favs.agregarFavorito(producto),
-                                    );
-                                  },
+                              Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      producto.nombre,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '\$${producto.precio.toStringAsFixed(2)}',
+                                      style:
+                                      const TextStyle(color: Colors.green),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                producto.nombre,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '\$${producto.precio.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                    color: Colors.green),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

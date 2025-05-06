@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'firebase_options.dart';
-import 'pantallas/welcome_screen.dart';       // <-- Importa la WelcomeScreen
+import 'pantallas/welcome_screen.dart';
 import 'pantallas/inicio.dart';
 import 'pantallas/cart_screen.dart';
 import 'pantallas/login_screen.dart';
@@ -16,12 +16,14 @@ import 'proveedores/cart_provider.dart';
 import 'modelos/favoritos_model.dart';
 import 'modelos/productos_model.dart';
 
+// 🔴 Añadido: RouteObserver global
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializa Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await initializeDateFormatting('es'); // Formato de fechas en español
+  await initializeDateFormatting('es');
 
   runApp(
     MultiProvider(
@@ -43,7 +45,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Zapato',
-      initialRoute: '/welcome',   // <-- Ahora arrancamos aquí
+      navigatorObservers: [routeObserver], // 🔴 Añadido aquí
+      initialRoute: '/welcome',
       routes: {
         '/welcome': (context) => const WelcomeScreen(),
         '/login':   (context) => const LoginScreen(),

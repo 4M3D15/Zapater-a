@@ -117,18 +117,36 @@ class _InicioScreenState extends State<InicioScreen>
                 key: ValueKey(_titulos[_currentIndex]),
                 padding:
                 const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    _titulos[_currentIndex],
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Título de la sección
+                    Text(
+                      _titulos[_currentIndex],
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
                     ),
-                  ),
+
+                    // Icono de “bolsa” solo en la pestaña Carrito
+                    if (_currentIndex == 3)
+                      IconButton(
+                        icon: const Icon(Icons.shopping_bag),
+                        color: Colors.black87,
+                        onPressed: () {
+                          // Puedes agregar acción si lo deseas
+                        },
+                      ),
+                  ],
                 ),
               ),
             ),
+
+            // Contenido principal
             Expanded(
               child: _buildPantalla(_currentIndex),
             ),

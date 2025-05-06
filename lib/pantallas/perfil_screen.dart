@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'login_screen.dart';
+import '../widgets/animations.dart'; // <-- aquí importas AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,10 +18,9 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen>
-    with SingleTickerProviderStateMixin {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+class _ProfileScreenState extends State<ProfileScreen> {
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
 
   late User _user;
   bool _isLoading = false;
@@ -28,11 +28,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   late TextEditingController _nameController;
   late TextEditingController _lastNameController;
 
-  File? _avatarImageFile;
+  File? _avatarFile;
   String? _avatarBase64;
-
-  late AnimationController _animController;
-  late Animation<Offset> _slideAnim;
 
   @override
   void initState() {
@@ -40,18 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     _user = _auth.currentUser!;
     _nameController = TextEditingController();
     _lastNameController = TextEditingController();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOut,
-    ));
-
     _loadUserData();
   }
 
@@ -63,7 +48,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       _lastNameController.text = data['apellido'] ?? '';
       _avatarBase64 = data['avatarBase64'];
     }
-    _animController.forward();
     setState(() {});
   }
 
@@ -73,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     if (picked == null) return;
     final bytes = await picked.readAsBytes();
     _avatarBase64 = base64Encode(bytes);
-    setState(() => _avatarImageFile = File(picked.path));
+    setState(() => _avatarFile = File(picked.path));
   }
 
   Future<void> _updateProfile() async {
@@ -87,17 +71,11 @@ class _ProfileScreenState extends State<ProfileScreen>
       await _firestore.collection('usuarios').doc(_user.uid).update(updateData);
       await _user.updateDisplayName(_nameController.text);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Perfil actualizado'),
-          backgroundColor: Colors.green,
-        ),
+        const SnackBar(content: Text('Perfil actualizado'), backgroundColor: Colors.green),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -113,8 +91,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   ImageProvider<Object> _avatarProvider() {
-    if (_avatarImageFile != null) {
-      return FileImage(_avatarImageFile!);
+    if (_avatarFile != null) {
+      return FileImage(_avatarFile!);
     } else if (_avatarBase64 != null) {
       return MemoryImage(base64Decode(_avatarBase64!));
     } else {
@@ -124,7 +102,6 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   void dispose() {
-    _animController.dispose();
     _nameController.dispose();
     _lastNameController.dispose();
     super.dispose();
@@ -132,111 +109,131 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFDFDF8), // blanco crema Nike
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text('Perfil', style: TextStyle(color: Colors.black)),
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: SlideTransition(
-            position: _slideAnim,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Avatar editable con Hero
-                Center(
-                  child: GestureDetector(
-                    onTap: _pickAvatar,
-                    child: Hero(
-                      tag: 'profile-avatar',
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: _avatarProvider(),
-                        backgroundColor: Colors.grey.shade200,
-                        child: _avatarImageFile == null && _avatarBase64 == null
-                            ? const Icon(Icons.camera_alt, size: 30, color: Colors.white70)
-                            : null,
+    return AnimatedPageWrapper(
+      child: Scaffold(
+        backgroundColor: const Color(0xFFFDFDF8),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          title: const Text('Perfil', style: TextStyle(color: Colors.black)),
+          iconTheme: const IconThemeData(color: Colors.black),
+        ),
+        body: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: SlideFadeIn(
+              index: 0,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Avatar
+                  SlideFadeInFromBottom(
+                    delay: const Duration(milliseconds: 100),
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: _pickAvatar,
+                        child: Hero(
+                          tag: 'profile-avatar',
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundImage: _avatarProvider(),
+                            backgroundColor: Colors.grey.shade200,
+                            child: _avatarFile == null && _avatarBase64 == null
+                                ? const Icon(Icons.camera_alt, size: 30, color: Colors.white70)
+                                : null,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
-                // Nombre
-                TextField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Nombre',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  // Nombre
+                  SlideFadeInFromBottom(
+                    delay: const Duration(milliseconds: 200),
+                    child: TextField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Nombre',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // Apellido
-                TextField(
-                  controller: _lastNameController,
-                  decoration: InputDecoration(
-                    labelText: 'Apellido',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  // Apellido
+                  SlideFadeInFromBottom(
+                    delay: const Duration(milliseconds: 300),
+                    child: TextField(
+                      controller: _lastNameController,
+                      decoration: InputDecoration(
+                        labelText: 'Apellido',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // Correo (lectura)
-                TextField(
-                  controller: TextEditingController(text: _user.email ?? ''),
-                  readOnly: true,
-                  decoration: InputDecoration(
-                    labelText: 'Correo electrónico',
-                    filled: true,
-                    fillColor: Colors.grey.shade100,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  // Correo (solo lectura)
+                  SlideFadeInFromBottom(
+                    delay: const Duration(milliseconds: 400),
+                    child: TextField(
+                      controller: TextEditingController(text: _user.email ?? ''),
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: 'Correo electrónico',
+                        filled: true,
+                        fillColor: Colors.grey.shade100,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
-                // Guardar
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.save),
-                  label: _isLoading
-                      ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                  )
-                      : const Text('Guardar cambios'),
-                  onPressed: _isLoading ? null : _updateProfile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  // Botón Guardar
+                  SlideFadeInFromBottom(
+                    delay: const Duration(milliseconds: 500),
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.save),
+                      label: _isLoading
+                          ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                          : const Text('Guardar cambios'),
+                      onPressed: _isLoading ? null : _updateProfile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 15),
+                  const SizedBox(height: 15),
 
-                // Cerrar sesión
-                TextButton.icon(
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Cerrar sesión'),
-                  onPressed: _signOut,
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    textStyle: const TextStyle(fontSize: 16),
+                  // Botón Cerrar sesión
+                  SlideFadeInFromBottom(
+                    delay: const Duration(milliseconds: 600),
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.logout),
+                      label: const Text('Cerrar sesión'),
+                      onPressed: _signOut,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        textStyle: const TextStyle(fontSize: 16),
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

@@ -1,39 +1,6 @@
-// lib/widgets/animaciones.dart
 import 'package:flutter/material.dart';
-import 'package:animations/animations.dart';
 
-/// Animación de cambio de página con transición compartida
-class AnimatedPageWrapper extends StatelessWidget {
-  final Widget child;
-  final Duration duration;
-  final SharedAxisTransitionType transitionType;
-
-  const AnimatedPageWrapper({
-    super.key,
-    required this.child,
-    this.duration = const Duration(milliseconds: 400),
-    this.transitionType = SharedAxisTransitionType.horizontal,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return PageTransitionSwitcher(
-      duration: duration,
-      reverse: false,
-      transitionBuilder: (child, animation, secondaryAnimation) {
-        return SharedAxisTransition(
-          animation: animation,
-          secondaryAnimation: secondaryAnimation,
-          transitionType: transitionType,
-          child: child,
-        );
-      },
-      child: child,
-    );
-  }
-}
-
-/// Animación que entra desde arriba (ideal para listas)
+/// Animación que entra DESDE ARRIBA (ideal para listas)
 class SlideFadeIn extends StatefulWidget {
   final Widget child;
   final int index;
@@ -85,7 +52,7 @@ class _SlideFadeInState extends State<SlideFadeIn> {
   }
 }
 
-/// Animación que entra desde abajo (ideal para botones, totales, etc.)
+/// Animación que entra DESDE ABAJO (ideal para botones, totales, etc)
 class SlideFadeInFromBottom extends StatefulWidget {
   final Widget child;
   final Duration delay;
