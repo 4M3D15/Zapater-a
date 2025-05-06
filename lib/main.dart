@@ -4,12 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'firebase_options.dart';
+import 'pantallas/welcome_screen.dart';       // <-- Importa la WelcomeScreen
 import 'pantallas/inicio.dart';
 import 'pantallas/cart_screen.dart';
 import 'pantallas/login_screen.dart';
 import 'pantallas/registro_screen.dart';
+import 'pantallas/perfil_screen.dart';
 import 'pantallas/product_detail_screen.dart';
-import 'pantallas/perfil_screen.dart'; // Asegúrate de que esta línea esté aquí
 
 import 'proveedores/cart_provider.dart';
 import 'modelos/favoritos_model.dart';
@@ -42,13 +43,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Zapato',
-      initialRoute: '/login', // Cambiar a '/perfil' si el usuario ya está autenticado
+      initialRoute: '/welcome',   // <-- Ahora arrancamos aquí
       routes: {
-        '/': (context) => const InicioScreen(),
-        '/cart': (context) => const CartScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/registro': (context) => const RegistroScreen(),
-        '/perfil': (context) => const ProfileScreen(), // Ruta hacia ProfileScreen
+        '/welcome': (context) => const WelcomeScreen(),
+        '/login':   (context) => const LoginScreen(),
+        '/registro':(context) => const RegistroScreen(),
+        '/':        (context) => const InicioScreen(),
+        '/cart':    (context) => const CartScreen(),
+        '/perfil':  (context) => const ProfileScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/product') {

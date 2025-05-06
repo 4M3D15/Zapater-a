@@ -1,16 +1,17 @@
+// lib/pantallas/inicio.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:zapato/pantallas/editar_perfil_screen.dart';
+import 'package:zapato/pantallas/perfil_screen.dart';
 
 import 'inicio_content.dart';
-import 'perfil_screen.dart';
-import 'favoritos_screen.dart';
 import 'busquedascreen.dart';
+import 'favoritos_screen.dart';
 import 'cart_screen.dart';
+import 'welcome_screen.dart';
 import 'registro_screen.dart';
 import 'custom_bottom_nav_bar.dart';
-import '../pantallas/inicio_content.dart';
 
 class InicioScreen extends StatefulWidget {
   const InicioScreen({Key? key}) : super(key: key);
@@ -19,15 +20,14 @@ class InicioScreen extends StatefulWidget {
   State<InicioScreen> createState() => _InicioScreenState();
 }
 
-class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderStateMixin {
+class _InicioScreenState extends State<InicioScreen>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   final ScrollController _scrollController = ScrollController();
   bool _showNavBar = true;
   late AnimationController _navBarAnimController;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
-
-  final GlobalKey _inicioKey = GlobalKey();
 
   final List<String> _titulos = [
     'Inicio',
@@ -49,10 +49,9 @@ class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderSt
     _slideAnimation = Tween<Offset>(
       begin: Offset.zero,
       end: const Offset(0, 1),
-    ).animate(CurvedAnimation(
-      parent: _navBarAnimController,
-      curve: Curves.easeInOut,
-    ));
+    ).animate(
+      CurvedAnimation(parent: _navBarAnimController, curve: Curves.easeInOut),
+    );
 
     _fadeAnimation = Tween<double>(
       begin: 1.0,
@@ -85,10 +84,7 @@ class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderSt
   Widget _buildPantalla(int index) {
     switch (index) {
       case 0:
-        return InicioContent(
-          key: _inicioKey,
-          scrollController: _scrollController,
-        );
+        return InicioContent(scrollController: _scrollController);
       case 1:
         return const BusquedaScreen();
       case 2:
@@ -97,7 +93,9 @@ class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderSt
         return const CartScreen();
       case 4:
         final user = FirebaseAuth.instance.currentUser;
-        return user != null ? const EditarPerfilScreen() : const RegistroScreen();
+        return user != null
+            ? const ProfileScreen()
+            : const WelcomeScreen();
       default:
         return const SizedBox.shrink();
     }
@@ -106,17 +104,19 @@ class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFDFDF8),
       extendBody: true,
       body: SafeArea(
         child: Column(
           children: [
-            // Título dinámico
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
+              transitionBuilder: (child, anim) =>
+                  FadeTransition(opacity: anim, child: child),
               child: Padding(
                 key: ValueKey(_titulos[_currentIndex]),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -129,7 +129,6 @@ class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderSt
                 ),
               ),
             ),
-            // Contenido principal
             Expanded(
               child: _buildPantalla(_currentIndex),
             ),
