@@ -1,5 +1,3 @@
-// lib/pantallas/product_detail_screen.dart
-
 import 'dart:async';
 import 'dart:math';
 
@@ -29,7 +27,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   late Producto producto;
   int cantidad = 1;
   String tallaSeleccionada = '';
-  final List<String> tallas = [];
+  Map<String, int> tallasStock = {};
 
   final TextEditingController _comentarioController = TextEditingController();
   int _calificacionSeleccionada = 0;
@@ -39,7 +37,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   void initState() {
     super.initState();
     _cargarProducto();
-    _cargarTallas();
   }
 
   @override
@@ -56,19 +53,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (doc.exists) {
       setState(() {
         producto = Producto.fromFirestore(doc);
+
+        final tallaMap = doc.data()?['Talla'] as Map<String, dynamic>? ?? {};
+        tallasStock.clear();
+        tallaMap.forEach((talla, stock) {
+          tallasStock[talla] = stock as int;
+        });
+
+        if (tallasStock.isNotEmpty) {
+          tallaSeleccionada = tallasStock.keys.first;
+        }
+
         _isLoading = false;
       });
     }
-  }
-
-  Future<void> _cargarTallas() async {
-    final snap = await FirebaseFirestore.instance.collection('tallas').get();
-    final lista = snap.docs.map((d) => d.data()['nombre'] as String).toList();
-    setState(() {
-      tallas.clear();
-      tallas.addAll(lista);
-      if (tallas.isNotEmpty) tallaSeleccionada = tallas.first;
-    });
   }
 
   void _mostrarSelectorTallas() {
@@ -78,12 +76,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         padding: const EdgeInsets.all(16),
         child: Wrap(
           spacing: 10,
-          children: tallas.map((t) {
+          children: tallasStock.entries.map((entry) {
+            final talla = entry.key;
+            final stock = entry.value;
             return ChoiceChip(
-              label: Text(t),
-              selected: t == tallaSeleccionada,
+              label: Text('$talla ($stock disponibles)'),
+              selected: talla == tallaSeleccionada,
               onSelected: (_) {
-                setState(() => tallaSeleccionada = t);
+                setState(() {
+                  tallaSeleccionada = talla;
+                  cantidad = min(1, stock);
+                });
                 Navigator.pop(context);
               },
             );
@@ -101,14 +104,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         usuario: 'Anónimo',
         comentario: _comentarioController.text.trim(),
         rating: _calificacionSeleccionada,
-        fecha: DateTime.now(),                   // <-- required parameter
+        fecha: DateTime.now(),
       ));
       _comentarioController.clear();
       _calificacionSeleccionada = 0;
     });
 
     // Confetti
-    late OverlayEntry entry;                     // <-- late declaration
+    late OverlayEntry entry;
     entry = OverlayEntry(builder: (_) {
       return ConfettiOverlay(onComplete: () {
         entry.remove();
@@ -201,6 +204,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final cartProv = context.watch<CartProvider>();
     final isFav = favModel.esFavorito(producto);
     final cartCount = cartProv.items.length;
+
+    final stockDisponible = tallasStock[tallaSeleccionada] ?? 0;
+    final botonDeshabilitado = stockDisponible == 0;
 
     return AnimatedPageWrapper(
       child: Scaffold(
@@ -306,15 +312,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                        icon: const Icon(Icons.remove),
-                        onPressed: () => setState(
-                                () => cantidad = max(1, cantidad - 1))),
+                      icon: const Icon(Icons.remove),
+                      onPressed: () => setState(() {
+                        cantidad = max(1, cantidad - 1);
+                      }),
+                    ),
                     Text('$cantidad',
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     IconButton(
-                        icon: const Icon(Icons.add),
-                        onPressed: () => setState(() => cantidad++)),
+                      icon: const Icon(Icons.add),
+                      onPressed: () => setState(() {
+                        if (cantidad < stockDisponible) cantidad++;
+                      }),
+                    ),
                   ],
                 ),
               ),
@@ -324,7 +335,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: botonDeshabilitado
+                        ? null
+                        : () {
                       cartProv.addToCart(CartItem(
                         nombre: producto.nombre,
                         imagen: producto.imagen,
@@ -333,7 +346,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         cantidad: cantidad,
                       ));
                     },
-                    child: const Text('Añadir al carrito'),
+                    child: Text(
+                      botonDeshabilitado
+                          ? 'Sin stock disponible'
+                          : 'Añadir al carrito',
+                    ),
                   ),
                 ),
               ),
