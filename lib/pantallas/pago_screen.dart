@@ -1,22 +1,10 @@
-// lib/pantallas/pago_screen.dart
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
-import '../modelos/cart_model.dart';
-import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../modelos/cart_model.dart'; // Asegúrate de tener este modelo importado
 
 class PagoScreen extends StatefulWidget {
-  final String direccion;
-  final List<CartItem> productos;
-  final double total;
-
-  const PagoScreen({
-    super.key,
-    required this.direccion,
-    required this.productos,
-    required this.total,
-  });
+  const PagoScreen({Key? key}) : super(key: key);
 
   @override
   _PagoScreenState createState() => _PagoScreenState();
@@ -24,178 +12,238 @@ class PagoScreen extends StatefulWidget {
 
 class _PagoScreenState extends State<PagoScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _numeroTarjetaController = TextEditingController();
-  final _fechaExpiracionController = TextEditingController();
-  final _cvvController = TextEditingController();
-  String _tipoTarjeta = 'debito';
+  final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _numeroTarjetaController = TextEditingController();
+  final TextEditingController _fechaExpiracionController = TextEditingController();
+  final TextEditingController _codigoSeguridadController = TextEditingController();
+  final TextEditingController _direccionController = TextEditingController();
+
+  String _tipoTarjeta = 'debito'; // Tarjeta por defecto es débito
+
+  bool _isCreditoSelected = false; // Flag para saber si se seleccionó crédito o débito
 
   @override
   void dispose() {
+    _nombreController.dispose();
     _numeroTarjetaController.dispose();
     _fechaExpiracionController.dispose();
-    _cvvController.dispose();
+    _codigoSeguridadController.dispose();
+    _direccionController.dispose();
     super.dispose();
   }
 
-  void _realizarPago() {
-    if (_formKey.currentState?.validate() ?? false) {
-      final metodoPago = "Método: ${_tipoTarjeta == 'debito' ? 'Débito' : 'Crédito'}";
-      final tarjetaCompleta =
-          "${_numeroTarjetaController.text}|Exp:${_fechaExpiracionController.text}|CVV:${_cvvController.text}";
+  Future<void> _guardarPedido(String direccion, List<CartItem> productos, double total, String tipoTarjeta) async {
+    // Obtener el correo del usuario desde Firebase Authentication
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final correo = user.email;
 
-      Navigator.pushNamed(
-        context,
-        '/confirmacion',
-        arguments: {
-          'direccion': widget.direccion,
-          'metodoPago': metodoPago,
-          'tarjetaCompleta': tarjetaCompleta,
-          'productos': widget.productos,
-          'total': widget.total,
-        },
-      );
+      // Guardar el pedido en la base de datos de Firestore
+      final pedidoRef = FirebaseFirestore.instance.collection('pedidos').doc();
+      await pedidoRef.set({
+        'correo': correo,
+        'direccion': direccion,
+        'productos': productos.map((item) => {
+          'nombre': item.nombre,
+          'cantidad': item.cantidad,
+          'precio': item.precio,
+        }).toList(),
+        'total': total,
+        'tipoTarjeta': tipoTarjeta,
+        'fecha': FieldValue.serverTimestamp(),
+      });
     }
-  }
-
-  Widget _campoTexto(
-      TextEditingController controller,
-      String label,
-      int length, {
-        String? pattern,
-        bool oculto = false,
-        List<TextInputFormatter>? inputFormatters,
-        required int index,
-      }) {
-    return SlideFadeIn(
-      index: index,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: TextFormField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            border: const OutlineInputBorder(),
-          ),
-          obscureText: oculto,
-          keyboardType: TextInputType.number,
-          inputFormatters: inputFormatters ?? [],
-          validator: (v) {
-            if (v == null || v.isEmpty) return 'Campo obligatorio';
-            if (v.length != length) return 'Debe tener $length dígitos';
-            if (pattern != null && !RegExp(pattern).hasMatch(v)) return 'Formato inválido';
-            return null;
-          },
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedPageWrapper(
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Formas de Pago"),
-          centerTitle: true,
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: Column(
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final String direccion = args['direccion'];
+    final List<CartItem> productos = List<CartItem>.from(args['productos']);
+    final double total = args['total'];
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Pago')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Dirección de Envío
+            Text('Dirección de Envío:', style: Theme.of(context).textTheme.titleMedium),
+            Text(direccion),
+            const SizedBox(height: 16),
+
+            // Resumen de Productos
+            Text('Resumen de productos:', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.builder(
+                itemCount: productos.length,
+                itemBuilder: (_, index) {
+                  final item = productos[index];
+                  return ListTile(
+                    title: Text(item.nombre),
+                    subtitle: Text("Cantidad: ${item.cantidad}"),
+                    trailing: Text("\$${(item.precio * item.cantidad).toStringAsFixed(2)}"),
+                  );
+                },
+              ),
+            ),
+            const Divider(),
+            Text("Total: \$${total.toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+
+            // Selección de tipo de tarjeta
+            Text('Selecciona el tipo de tarjeta', style: Theme.of(context).textTheme.titleMedium),
+            Row(
               children: [
-                // Opciones de tarjeta
-                SlideFadeIn(
-                  index: 0,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: RadioListTile<String>(
-                          title: const Text('Tarjeta de débito'),
-                          value: 'debito',
-                          groupValue: _tipoTarjeta,
-                          onChanged: (v) => setState(() => _tipoTarjeta = v!),
-                        ),
-                      ),
-                      Expanded(
-                        child: RadioListTile<String>(
-                          title: const Text('Tarjeta de crédito'),
-                          value: 'credito',
-                          groupValue: _tipoTarjeta,
-                          onChanged: (v) => setState(() => _tipoTarjeta = v!),
-                        ),
-                      ),
-                    ],
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('Tarjeta de débito'),
+                    value: 'debito',
+                    groupValue: _tipoTarjeta,
+                    onChanged: (v) => setState(() {
+                      _tipoTarjeta = v!;
+                      _isCreditoSelected = false; // Si selecciona débito, desactiva los campos de crédito
+                    }),
                   ),
                 ),
-
-                // Campos de texto
-                _campoTexto(
-                  _numeroTarjetaController,
-                  "Número de tarjeta",
-                  16,
-                  index: 1,
-                ),
-                _campoTexto(
-                  _fechaExpiracionController,
-                  "Fecha de expiración (MM/AA)",
-                  5,
-                  pattern: r'^(0[1-9]|1[0-2])\/\d{2}$',
-                  inputFormatters: [_CardExpirationDateFormatter()],
-                  index: 2,
-                ),
-                _campoTexto(
-                  _cvvController,
-                  "CVV",
-                  3,
-                  pattern: r'^\d{3}$',
-                  oculto: true,
-                  index: 3,
-                ),
-
-                const SizedBox(height: 30),
-
-                // Botón Realizar pago
-                SlideFadeInFromBottom(
-                  delay: const Duration(milliseconds: 100),
-                  child: ElevatedButton(
-                    onPressed: _realizarPago,
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.black,
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text("Realizar pago"),
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('Tarjeta de crédito'),
+                    value: 'credito',
+                    groupValue: _tipoTarjeta,
+                    onChanged: (v) => setState(() {
+                      _tipoTarjeta = v!;
+                      _isCreditoSelected = true; // Si selecciona crédito, activa los campos de crédito
+                    }),
                   ),
                 ),
               ],
             ),
-          ),
+
+            const SizedBox(height: 16),
+
+            // Formulario de Pago
+            Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  // Campo de nombre del titular
+                  TextFormField(
+                    controller: _nombreController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nombre del Titular',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Este campo es obligatorio';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Campo de número de tarjeta
+                  TextFormField(
+                    controller: _numeroTarjetaController,
+                    decoration: const InputDecoration(
+                      labelText: 'Número de tarjeta',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty || value.length != 16) {
+                        return 'Número de tarjeta inválido';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Campo de fecha de expiración
+                  TextFormField(
+                    controller: _fechaExpiracionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Fecha de expiración (MM/AA)',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty || value.length != 5) {
+                        return 'Fecha de expiración inválida';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Campo de código de seguridad
+                  TextFormField(
+                    controller: _codigoSeguridadController,
+                    decoration: const InputDecoration(
+                      labelText: 'Código de seguridad (CVV)',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty || value.length != 3) {
+                        return 'Código de seguridad inválido';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Campo de dirección
+                  TextFormField(
+                    controller: _direccionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Dirección de facturación',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Este campo es obligatorio';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Botón de pago
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState?.validate() ?? false) {
+                        // Guardar el pedido
+                        _guardarPedido(direccion, productos, total, _tipoTarjeta);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Pago realizado con éxito')),
+                        );
+
+                        // Navegar a la pantalla de confirmación
+                        Navigator.pushNamed(context, '/confirmacion');
+                      }
+                    },
+                    child: const Text('Pagar ahora'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
-  }
-}
-
-class _CardExpirationDateFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    final text = _formatCardExpirationDate(newValue.text);
-    return newValue.copyWith(
-      text: text,
-      selection: TextSelection.collapsed(offset: text.length),
-    );
-  }
-
-  String _formatCardExpirationDate(String text) {
-    final digitsOnly = text.replaceAll(RegExp(r'\D'), '');
-    final buffer = StringBuffer();
-    for (var i = 0; i < digitsOnly.length; i++) {
-      buffer.write(digitsOnly[i]);
-      if (i == 1) buffer.write('/');
-    }
-    return buffer.toString();
   }
 }
