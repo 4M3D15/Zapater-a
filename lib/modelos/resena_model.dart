@@ -14,21 +14,21 @@ class Resena {
     required this.fecha,
   });
 
-  factory Resena.fromFirestore(Map<String, dynamic> data) {
+  factory Resena.fromMap(Map<String, dynamic> map) {
     return Resena(
-      usuario: data['usuario'] ?? 'Anónimo',
-      comentario: data['comentario'] ?? '',
-      rating: data['rating'] ?? 0,
-      fecha: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      usuario: map['usuario'] ?? 'Anónimo',
+      comentario: map['comentario'] ?? '',
+      rating: map['rating'] ?? 0,
+      fecha: (map['fecha'] as Timestamp).toDate(),
     );
   }
 
-  Map<String, dynamic> toFirestore() {
+  Map<String, dynamic> toMap() {
     return {
       'usuario': usuario,
       'comentario': comentario,
       'rating': rating,
-      'timestamp': FieldValue.serverTimestamp(),
+      'fecha': fecha,
     };
   }
 }

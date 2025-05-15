@@ -12,7 +12,7 @@ import '../modelos/resena_model.dart';
 import '../proveedores/cart_provider.dart';
 import '../widgets/animated_favorite_icon.dart';
 import '../widgets/confetti_overlay.dart';
-import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
+import '../widgets/animations.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
@@ -53,20 +53,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (doc.exists) {
       setState(() {
         producto = Producto.fromFirestore(doc);
-
         final tallaMap = doc.data()?['Talla'] as Map<String, dynamic>? ?? {};
         tallasStock.clear();
         tallaMap.forEach((talla, stock) {
           tallasStock[talla] = stock as int;
         });
-
         if (tallasStock.isNotEmpty) {
           tallaSeleccionada = tallasStock.keys.first;
         }
+      });
 
+      await _cargarResenas();
+      setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _cargarResenas() async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('productos')
+        .doc(widget.productId)
+        .collection('reseñas')
+        .orderBy('fecha', descending: true)
+        .get();
+
+    final resenas = snapshot.docs.map((doc) => Resena.fromMap(doc.data())).toList();
+    setState(() {
+      _resenas.clear();
+      _resenas.addAll(resenas);
+    });
   }
 
   void _mostrarSelectorTallas() {
@@ -96,21 +112,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  void _agregarResena() {
+  void _agregarResena() async {
     if (_comentarioController.text.trim().isEmpty || _calificacionSeleccionada == 0) return;
 
+    final nuevaResena = Resena(
+      usuario: 'Anónimo',
+      comentario: _comentarioController.text.trim(),
+      rating: _calificacionSeleccionada,
+      fecha: DateTime.now(),
+    );
+
     setState(() {
-      _resenas.insert(0, Resena(
-        usuario: 'Anónimo',
-        comentario: _comentarioController.text.trim(),
-        rating: _calificacionSeleccionada,
-        fecha: DateTime.now(),
-      ));
+      _resenas.insert(0, nuevaResena);
       _comentarioController.clear();
       _calificacionSeleccionada = 0;
     });
 
-    // Confetti
+    await FirebaseFirestore.instance
+        .collection('productos')
+        .doc(widget.productId)
+        .collection('reseñas')
+        .add(nuevaResena.toMap());
+
     late OverlayEntry entry;
     entry = OverlayEntry(builder: (_) {
       return ConfettiOverlay(onComplete: () {
@@ -174,13 +197,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ...List.generate(5, (i) {
                   return IconButton(
                     icon: Icon(
-                      i < _calificacionSeleccionada
-                          ? Icons.star
-                          : Icons.star_border,
+                      i < _calificacionSeleccionada ? Icons.star : Icons.star_border,
                       color: Colors.amber,
                     ),
-                    onPressed: () =>
-                        setState(() => _calificacionSeleccionada = i + 1),
+                    onPressed: () => setState(() => _calificacionSeleccionada = i + 1),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   );
@@ -219,8 +239,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               child: AnimatedFavoriteIcon(
                 esFavorito: isFav,
                 onTap: () {
-                  if (isFav) favModel.removerFavorito(producto);
-                  else favModel.agregarFavorito(producto);
+                  if (isFav) {
+                    favModel.removerFavorito(producto);
+                  } else {
+                    favModel.agregarFavorito(producto);
+                  }
                 },
               ),
             ),
@@ -237,11 +260,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     delay: const Duration(milliseconds: 200),
                     child: Container(
                       padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                          color: Colors.red, shape: BoxShape.circle),
-                      child: Text('$cartCount',
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 12)),
+                      decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                      child: Text('$cartCount', style: const TextStyle(color: Colors.white, fontSize: 12)),
                     ),
                   ),
                 ),
@@ -261,49 +281,42 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     producto.imagen,
                     height: 200,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.broken_image, size: 100),
+                    errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 100),
                   ),
                 ),
               ),
               const SizedBox(height: 10),
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 100),
-                child: Text(producto.nombre,
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.bold)),
+                child: Text(producto.nombre, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(height: 5),
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 200),
-                child: Text('\$${producto.precio}',
-                    style:
-                    const TextStyle(fontSize: 18, color: Colors.green)),
+                child: Text('\$${producto.precio}', style: const TextStyle(fontSize: 18, color: Colors.green)),
               ),
               const SizedBox(height: 10),
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 300),
-                child: Text('Categoría: ${producto.categoria}',
-                    style: const TextStyle(fontSize: 16)),
+                child: Text('Categoría: ${producto.categoria}', style: const TextStyle(fontSize: 16)),
               ),
               const SizedBox(height: 5),
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 400),
-                child: Text('Descripción: ${producto.descripcion}',
-                    style: const TextStyle(fontSize: 16)),
+                child: Text('Descripción: ${producto.descripcion}', style: const TextStyle(fontSize: 16)),
               ),
               const SizedBox(height: 5),
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 500),
-                child: Text('Color: ${producto.color}',
-                    style: const TextStyle(fontSize: 16)),
+                child: Text('Color: ${producto.color}', style: const TextStyle(fontSize: 16)),
               ),
               const SizedBox(height: 10),
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 600),
                 child: ElevatedButton(
-                    onPressed: _mostrarSelectorTallas,
-                    child: Text('Talla: $tallaSeleccionada')),
+                  onPressed: _mostrarSelectorTallas,
+                  child: Text('Talla: $tallaSeleccionada'),
+                ),
               ),
               const SizedBox(height: 10),
               SlideFadeInFromBottom(
@@ -313,13 +326,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.remove),
-                      onPressed: () => setState(() {
-                        cantidad = max(1, cantidad - 1);
-                      }),
+                      onPressed: () => setState(() => cantidad = max(1, cantidad - 1)),
                     ),
-                    Text('$cantidad',
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text('$cantidad', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     IconButton(
                       icon: const Icon(Icons.add),
                       onPressed: () => setState(() {
@@ -339,7 +348,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ? null
                         : () {
                       cartProv.addToCart(CartItem(
-                        id: producto.id, // ← ¡Corregido aquí!
+                        id: producto.id,
                         nombre: producto.nombre,
                         imagen: producto.imagen,
                         precio: producto.precio,
@@ -347,11 +356,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         cantidad: cantidad,
                       ));
                     },
-                    child: Text(
-                      botonDeshabilitado
-                          ? 'Sin stock disponible'
-                          : 'Añadir al carrito',
-                    ),
+                    child: Text(botonDeshabilitado ? 'Sin stock disponible' : 'Añadir al carrito'),
                   ),
                 ),
               ),
