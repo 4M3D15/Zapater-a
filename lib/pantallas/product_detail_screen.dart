@@ -339,6 +339,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ? null
                         : () {
                       cartProv.addToCart(CartItem(
+                        id: producto.id, // ← ¡Corregido aquí!
                         nombre: producto.nombre,
                         imagen: producto.imagen,
                         precio: producto.precio,

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'package:zapato/proveedores/cart_provider.dart';
 import 'package:zapato/modelos/cart_model.dart';
 import 'package:zapato/pantallas/envio_screen.dart';
-
 import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
 
 const kBackgroundColor = Color(0xFFFDFDF8);
@@ -19,9 +17,9 @@ class CartScreen extends StatelessWidget {
 
     return AnimatedPageWrapper(
       child: Scaffold(
-        backgroundColor: kBackgroundColor,               // ← Fondo unificado
+        backgroundColor: kBackgroundColor,
         appBar: AppBar(
-          backgroundColor: kBackgroundColor,              // ← Mismo color en AppBar
+          backgroundColor: kBackgroundColor,
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.black),
           actions: [
@@ -107,12 +105,11 @@ class CartScreen extends StatelessWidget {
                                     Row(
                                       children: [
                                         IconButton(
-                                          icon:
-                                          const Icon(Icons.remove),
+                                          icon: const Icon(Icons.remove),
                                           onPressed: () {
                                             if (item.cantidad > 1) {
-                                              cart.updateQuantity(
-                                                  item, item.cantidad - 1);
+                                              cart.updateQuantity(item,
+                                                  item.cantidad - 1);
                                             }
                                           },
                                         ),
@@ -122,9 +119,32 @@ class CartScreen extends StatelessWidget {
                                                 FontWeight.bold)),
                                         IconButton(
                                           icon: const Icon(Icons.add),
-                                          onPressed: () {
-                                            cart.updateQuantity(
-                                                item, item.cantidad + 1);
+                                          onPressed: () async {
+                                            final nuevoValor =
+                                                item.cantidad + 1;
+                                            final stockDisponible =
+                                            await cart
+                                                .getStockDisponible(
+                                                item.id,
+                                                item.talla);
+
+                                            if (nuevoValor <=
+                                                stockDisponible) {
+                                              cart.updateQuantity(item,
+                                                  nuevoValor);
+                                            } else {
+                                              ScaffoldMessenger.of(
+                                                  context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    "Solo hay $stockDisponible unidades disponibles para la talla ${item.talla}.",
+                                                  ),
+                                                  backgroundColor:
+                                                  Colors.orange,
+                                                ),
+                                              );
+                                            }
                                           },
                                         ),
                                       ],

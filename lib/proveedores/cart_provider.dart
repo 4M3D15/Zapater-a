@@ -1,67 +1,62 @@
 import 'package:flutter/material.dart';
-import 'package:zapato/modelos/cart_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../modelos/cart_model.dart';
 
-class CartProvider extends ChangeNotifier {
+class CartProvider with ChangeNotifier {
   final List<CartItem> _items = [];
 
   List<CartItem> get items => _items;
 
-  // Añadir un producto al carrito
-  void addToCart(CartItem item) {
-    int index = _items.indexWhere((p) => p.nombre == item.nombre && p.talla == item.talla);
+  double get totalPrice => _items.fold(
+      0.0, (total, item) => total + item.precio * item.cantidad);
 
-    if (index != -1) {
-      // Si el producto ya está en el carrito, aumentamos la cantidad
+  void addToCart(CartItem item) {
+    final index = _items.indexWhere(
+            (element) => element.id == item.id && element.talla == item.talla);
+    if (index >= 0) {
       _items[index].cantidad += item.cantidad;
     } else {
-      // Si el producto no está en el carrito, lo agregamos
       _items.add(item);
     }
-
     notifyListeners();
   }
 
-  // Eliminar un producto del carrito
   void removeFromCart(CartItem item) {
-    _items.remove(item);
+    _items.removeWhere(
+            (element) => element.id == item.id && element.talla == item.talla);
     notifyListeners();
   }
 
-  // Vaciar el carrito
+  void updateQuantity(CartItem item, int nuevaCantidad) {
+    final index = _items.indexWhere(
+            (element) => element.id == item.id && element.talla == item.talla);
+    if (index >= 0) {
+      _items[index].cantidad = nuevaCantidad;
+      notifyListeners();
+    }
+  }
+
   void clearCart() {
     _items.clear();
     notifyListeners();
   }
 
-  // Obtener el precio total del carrito
-  double get totalPrice {
-    return _items.fold(0, (sum, item) => sum + (item.precio * item.cantidad));
-  }
+  Future<int> getStockDisponible(String productoId, String talla) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('productos')
+          .doc(productoId)
+          .get();
+      final data = doc.data();
+      if (data == null) return 0;
 
-  // Aumentar la cantidad de un producto
-  void increaseQuantity(CartItem item) {
-    int index = _items.indexOf(item);
-    if (index != -1) {
-      _items[index].cantidad++;
-      notifyListeners();  // Notificamos a la UI que la cantidad ha cambiado
-    }
-  }
+      final tallaMap = data['Talla'] as Map<String, dynamic>?;
+      if (tallaMap == null) return 0;
 
-  // Disminuir la cantidad de un producto
-  void decreaseQuantity(CartItem item) {
-    int index = _items.indexOf(item);
-    if (index != -1 && _items[index].cantidad > 1) {
-      _items[index].cantidad--;
-      notifyListeners();  // Notificamos a la UI que la cantidad ha cambiado
-    }
-  }
-
-  // Modificar la cantidad directamente
-  void updateQuantity(CartItem item, int newQuantity) {
-    int index = _items.indexOf(item);
-    if (index != -1 && newQuantity > 0) {
-      _items[index].cantidad = newQuantity;
-      notifyListeners();  // Notificamos a la UI que la cantidad ha cambiado
+      return tallaMap[talla]?.toInt() ?? 0;
+    } catch (e) {
+      print('Error al obtener el stock disponible: $e');
+      return 0;
     }
   }
 }
