@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../modelos/cart_model.dart'; // Asegúrate de tener este modelo importado
+import '../modelos/cart_model.dart';
 
 class PagoScreen extends StatefulWidget {
   const PagoScreen({Key? key}) : super(key: key);
@@ -18,9 +18,8 @@ class _PagoScreenState extends State<PagoScreen> {
   final TextEditingController _codigoSeguridadController = TextEditingController();
   final TextEditingController _direccionController = TextEditingController();
 
-  String _tipoTarjeta = 'debito'; // Tarjeta por defecto es débito
-
-  bool _isCreditoSelected = false; // Flag para saber si se seleccionó crédito o débito
+  String _tipoTarjeta = 'debito';
+  bool _isCreditoSelected = false;
 
   @override
   void dispose() {
@@ -33,25 +32,48 @@ class _PagoScreenState extends State<PagoScreen> {
   }
 
   Future<void> _guardarPedido(String direccion, List<CartItem> productos, double total, String tipoTarjeta) async {
-    // Obtener el correo del usuario desde Firebase Authentication
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final correo = user.email;
 
-      // Guardar el pedido en la base de datos de Firestore
+      // Guardar pedido
       final pedidoRef = FirebaseFirestore.instance.collection('pedidos').doc();
       await pedidoRef.set({
         'correo': correo,
         'direccion': direccion,
         'productos': productos.map((item) => {
+          'idProducto': item.id,
           'nombre': item.nombre,
-          'cantidad': item.cantidad,
           'precio': item.precio,
+          'cantidad': item.cantidad,
+          'talla': item.talla,
         }).toList(),
         'total': total,
         'tipoTarjeta': tipoTarjeta,
         'fecha': FieldValue.serverTimestamp(),
       });
+
+      // Actualizar stock por talla
+      final productosRef = FirebaseFirestore.instance.collection('productos');
+      for (var item in productos) {
+        final docRef = productosRef.doc(item.id);
+        final docSnap = await docRef.get();
+
+        if (docSnap.exists) {
+          final data = docSnap.data()!;
+          Map<String, dynamic> tallas = Map<String, dynamic>.from(data['Talla']);
+
+          if (tallas.containsKey(item.talla)) {
+            int stockActual = tallas[item.talla];
+            int nuevoStock = stockActual - item.cantidad;
+            if (nuevoStock < 0) nuevoStock = 0;
+
+            await docRef.update({
+              'Talla.${item.talla}': nuevoStock,
+            });
+          }
+        }
+      }
     }
   }
 
@@ -69,12 +91,10 @@ class _PagoScreenState extends State<PagoScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Dirección de Envío
             Text('Dirección de Envío:', style: Theme.of(context).textTheme.titleMedium),
             Text(direccion),
             const SizedBox(height: 16),
 
-            // Resumen de Productos
             Text('Resumen de productos:', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Expanded(
@@ -84,7 +104,7 @@ class _PagoScreenState extends State<PagoScreen> {
                   final item = productos[index];
                   return ListTile(
                     title: Text(item.nombre),
-                    subtitle: Text("Cantidad: ${item.cantidad}"),
+                    subtitle: Text("Cantidad: ${item.cantidad} | Talla: ${item.talla}"),
                     trailing: Text("\$${(item.precio * item.cantidad).toStringAsFixed(2)}"),
                   );
                 },
@@ -94,7 +114,6 @@ class _PagoScreenState extends State<PagoScreen> {
             Text("Total: \$${total.toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
 
-            // Selección de tipo de tarjeta
             Text('Selecciona el tipo de tarjeta', style: Theme.of(context).textTheme.titleMedium),
             Row(
               children: [
@@ -105,7 +124,7 @@ class _PagoScreenState extends State<PagoScreen> {
                     groupValue: _tipoTarjeta,
                     onChanged: (v) => setState(() {
                       _tipoTarjeta = v!;
-                      _isCreditoSelected = false; // Si selecciona débito, desactiva los campos de crédito
+                      _isCreditoSelected = false;
                     }),
                   ),
                 ),
@@ -116,7 +135,7 @@ class _PagoScreenState extends State<PagoScreen> {
                     groupValue: _tipoTarjeta,
                     onChanged: (v) => setState(() {
                       _tipoTarjeta = v!;
-                      _isCreditoSelected = true; // Si selecciona crédito, activa los campos de crédito
+                      _isCreditoSelected = true;
                     }),
                   ),
                 ),
@@ -125,28 +144,19 @@ class _PagoScreenState extends State<PagoScreen> {
 
             const SizedBox(height: 16),
 
-            // Formulario de Pago
             Form(
               key: _formKey,
               child: Column(
                 children: [
-                  // Campo de nombre del titular
                   TextFormField(
                     controller: _nombreController,
                     decoration: const InputDecoration(
                       labelText: 'Nombre del Titular',
                       border: OutlineInputBorder(),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Este campo es obligatorio';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.isEmpty ? 'Este campo es obligatorio' : null,
                   ),
                   const SizedBox(height: 12),
-
-                  // Campo de número de tarjeta
                   TextFormField(
                     controller: _numeroTarjetaController,
                     decoration: const InputDecoration(
@@ -154,16 +164,9 @@ class _PagoScreenState extends State<PagoScreen> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty || value.length != 16) {
-                        return 'Número de tarjeta inválido';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.length != 16 ? 'Número de tarjeta inválido' : null,
                   ),
                   const SizedBox(height: 12),
-
-                  // Campo de fecha de expiración
                   TextFormField(
                     controller: _fechaExpiracionController,
                     decoration: const InputDecoration(
@@ -171,16 +174,9 @@ class _PagoScreenState extends State<PagoScreen> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty || value.length != 5) {
-                        return 'Fecha de expiración inválida';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.length != 5 ? 'Fecha de expiración inválida' : null,
                   ),
                   const SizedBox(height: 12),
-
-                  // Campo de código de seguridad
                   TextFormField(
                     controller: _codigoSeguridadController,
                     decoration: const InputDecoration(
@@ -188,43 +184,28 @@ class _PagoScreenState extends State<PagoScreen> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty || value.length != 3) {
-                        return 'Código de seguridad inválido';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.length != 3 ? 'Código de seguridad inválido' : null,
                   ),
                   const SizedBox(height: 12),
-
-                  // Campo de dirección
                   TextFormField(
                     controller: _direccionController,
                     decoration: const InputDecoration(
                       labelText: 'Dirección de facturación',
                       border: OutlineInputBorder(),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Este campo es obligatorio';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.isEmpty ? 'Este campo es obligatorio' : null,
                   ),
                   const SizedBox(height: 20),
 
-                  // Botón de pago
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState?.validate() ?? false) {
-                        // Guardar el pedido
-                        _guardarPedido(direccion, productos, total, _tipoTarjeta);
+                        await _guardarPedido(direccion, productos, total, _tipoTarjeta);
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Pago realizado con éxito')),
                         );
 
-                        // Navegar a la pantalla de confirmación
                         Navigator.pushNamed(context, '/confirmacion');
                       }
                     },
