@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import '../modelos/cart_model.dart';
 
 class PagoScreen extends StatefulWidget {
@@ -16,7 +17,6 @@ class _PagoScreenState extends State<PagoScreen> {
   final TextEditingController _numeroTarjetaController = TextEditingController();
   final TextEditingController _fechaExpiracionController = TextEditingController();
   final TextEditingController _codigoSeguridadController = TextEditingController();
-  final TextEditingController _direccionController = TextEditingController();
 
   String _tipoTarjeta = 'debito';
   bool _isCreditoSelected = false;
@@ -27,7 +27,6 @@ class _PagoScreenState extends State<PagoScreen> {
     _numeroTarjetaController.dispose();
     _fechaExpiracionController.dispose();
     _codigoSeguridadController.dispose();
-    _direccionController.dispose();
     super.dispose();
   }
 
@@ -36,7 +35,6 @@ class _PagoScreenState extends State<PagoScreen> {
     if (user != null) {
       final correo = user.email;
 
-      // Guardar pedido
       final pedidoRef = FirebaseFirestore.instance.collection('pedidos').doc();
       await pedidoRef.set({
         'correo': correo,
@@ -53,7 +51,6 @@ class _PagoScreenState extends State<PagoScreen> {
         'fecha': FieldValue.serverTimestamp(),
       });
 
-      // Actualizar stock por talla
       final productosRef = FirebaseFirestore.instance.collection('productos');
       for (var item in productos) {
         final docRef = productosRef.doc(item.id);
@@ -157,6 +154,7 @@ class _PagoScreenState extends State<PagoScreen> {
                     validator: (value) => value == null || value.isEmpty ? 'Este campo es obligatorio' : null,
                   ),
                   const SizedBox(height: 12),
+
                   TextFormField(
                     controller: _numeroTarjetaController,
                     decoration: const InputDecoration(
@@ -164,9 +162,19 @@ class _PagoScreenState extends State<PagoScreen> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
-                    validator: (value) => value == null || value.length != 16 ? 'Número de tarjeta inválido' : null,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(16),
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    validator: (value) {
+                      if (value == null || value.length==1 || value.length< 16) {
+                        return 'Número de tarjeta inválido. Deben ser 16 caracteres';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 12),
+
                   TextFormField(
                     controller: _fechaExpiracionController,
                     decoration: const InputDecoration(
@@ -174,9 +182,21 @@ class _PagoScreenState extends State<PagoScreen> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
-                    validator: (value) => value == null || value.length != 5 ? 'Fecha de expiración inválida' : null,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(5),
+                      _FechaExpiracionFormatter(),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.length != 5 || !RegExp(r'^\d{2}/\d{2}$').hasMatch(value)) {
+                        return 'Fecha de expiración inválida';
+                      }
+                      int mes = int.tryParse(value.substring(0, 2)) ?? 0;
+                      if (mes < 1 || mes > 12) return 'Mes inválido';
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 12),
+
                   TextFormField(
                     controller: _codigoSeguridadController,
                     decoration: const InputDecoration(
@@ -184,16 +204,16 @@ class _PagoScreenState extends State<PagoScreen> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
-                    validator: (value) => value == null || value.length != 3 ? 'Código de seguridad inválido' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _direccionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Dirección de facturación',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) => value == null || value.isEmpty ? 'Este campo es obligatorio' : null,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(3),
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty || value.length < 3) {
+                        return 'Código de seguridad inválido';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 20),
 
@@ -228,3 +248,28 @@ class _PagoScreenState extends State<PagoScreen> {
     );
   }
 }
+
+class _FechaExpiracionFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    String digitsOnly = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (digitsOnly.length > 4) {
+      digitsOnly = digitsOnly.substring(0, 4);
+    }
+
+    StringBuffer buffer = StringBuffer();
+    for (int i = 0; i < digitsOnly.length; i++) {
+      if (i == 2) buffer.write('/');
+      buffer.write(digitsOnly[i]);
+    }
+
+    final String formatted = buffer.toString();
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
+
