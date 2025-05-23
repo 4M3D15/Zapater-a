@@ -167,7 +167,7 @@ class _PagoScreenState extends State<PagoScreen> {
                       FilteringTextInputFormatter.digitsOnly,
                     ],
                     validator: (value) {
-                      if (value == null || value.length==1 || value.length< 16) {
+                      if (value == null || value.length < 16) {
                         return 'Número de tarjeta inválido. Deben ser 16 caracteres';
                       }
                       return null;
@@ -209,7 +209,7 @@ class _PagoScreenState extends State<PagoScreen> {
                       FilteringTextInputFormatter.digitsOnly,
                     ],
                     validator: (value) {
-                      if (value == null || value.isEmpty || value.length < 3) {
+                      if (value == null || value.length < 3) {
                         return 'Código de seguridad inválido';
                       }
                       return null;
@@ -226,7 +226,15 @@ class _PagoScreenState extends State<PagoScreen> {
                           const SnackBar(content: Text('Pago realizado con éxito')),
                         );
 
-                        Navigator.pushNamed(context, '/confirmacion');
+                        Navigator.pushReplacementNamed(
+                          context,
+                          '/resumen',
+                          arguments: {
+                            'direccion': direccion,
+                            'productos': productos,
+                            'total': total,
+                          },
+                        );
                       }
                     },
                     child: const Text('Pagar ahora'),
@@ -271,5 +279,3 @@ class _FechaExpiracionFormatter extends TextInputFormatter {
     );
   }
 }
-
-

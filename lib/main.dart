@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:zapato/pantallas/resumen_screen.dart';
 
 // Firebase Options generado automáticamente
 import 'firebase_options.dart';
@@ -67,6 +68,8 @@ class MyApp extends StatelessWidget {
         '/cart': (context) => const CartScreen(),
         '/perfil': (context) => const ProfileScreen(),
         '/pago': (context) => const PagoScreen(),
+        '/resumen': (context) => const ResumenScreen(),
+        '/inicio': (context) => const InicioScreen(),
       },
       // Ruta dinámica para detalle de producto
       onGenerateRoute: (settings) {
