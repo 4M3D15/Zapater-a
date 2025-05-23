@@ -6,7 +6,7 @@ import '../modelos/producto_model.dart';
 import '../widgets/animated_favorite_icon.dart';
 import '../Servicios/firestore_service.dart';
 import '../widgets/particle_explosion.dart';
-import '../widgets/animations.dart'; // <-- Importa aquí
+import '../widgets/animations.dart';
 
 class BusquedaScreen extends StatefulWidget {
   const BusquedaScreen({Key? key}) : super(key: key);
@@ -78,7 +78,6 @@ class _BusquedaScreenState extends State<BusquedaScreen>
         padding: const EdgeInsets.only(bottom: 12.0),
         child: Column(
           children: [
-            // ────── Campo de búsqueda ──────
             Padding(
               padding: const EdgeInsets.all(10),
               child: TextField(
@@ -94,7 +93,6 @@ class _BusquedaScreenState extends State<BusquedaScreen>
               ),
             ),
 
-            // ────── Sugerencias ──────
             if (sugerencias.isNotEmpty)
               Container(
                 constraints: const BoxConstraints(maxHeight: 120),
@@ -116,7 +114,6 @@ class _BusquedaScreenState extends State<BusquedaScreen>
 
             const SizedBox(height: 10),
 
-            // ────── Resultados / Mensaje vacío ──────
             if (filteredProductos.isEmpty)
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 100),
@@ -132,8 +129,7 @@ class _BusquedaScreenState extends State<BusquedaScreen>
               Expanded(
                 child: GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 10,
                     crossAxisSpacing: 10,
@@ -178,17 +174,13 @@ class _BusquedaScreenState extends State<BusquedaScreen>
                                       right: 8,
                                       child: Consumer<FavoritosModel>(
                                         builder: (_, favs, __) {
-                                          final isFav =
-                                          favs.esFavorito(producto);
-                                          return GestureDetector(
+                                          final isFav = favs.esFavorito(producto);
+                                          return AnimatedFavoriteIcon(
+                                            esFavorito: isFav,
                                             onTap: () {
-                                              final renderBox = context
-                                                  .findRenderObject()
-                                              as RenderBox?;
+                                              final renderBox = context.findRenderObject() as RenderBox?;
                                               if (renderBox != null) {
-                                                final position = renderBox
-                                                    .localToGlobal(
-                                                    const Offset(0, 0));
+                                                final position = renderBox.localToGlobal(const Offset(0, 0));
                                                 _mostrarExplosion(position);
                                               }
                                               if (isFav) {
@@ -197,10 +189,6 @@ class _BusquedaScreenState extends State<BusquedaScreen>
                                                 favs.agregarFavorito(producto);
                                               }
                                             },
-                                            child: AnimatedFavoriteIcon(
-                                              esFavorito: isFav,
-                                              onTap: () {},
-                                            ),
                                           );
                                         },
                                       ),
@@ -223,8 +211,7 @@ class _BusquedaScreenState extends State<BusquedaScreen>
                                     const SizedBox(height: 4),
                                     Text(
                                       '\$${producto.precio.toStringAsFixed(2)}',
-                                      style:
-                                      const TextStyle(color: Colors.green),
+                                      style: const TextStyle(color: Colors.green),
                                     ),
                                   ],
                                 ),
