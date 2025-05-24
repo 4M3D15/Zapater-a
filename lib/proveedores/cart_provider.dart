@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:zapato/Servicios/db_local.dart';
 import '../modelos/cart_model.dart';
 
 class CartProvider with ChangeNotifier {
-  final List<CartItem> _items = [];
+  List<CartItem> _items = [];
 
   List<CartItem> get items => _items;
 
   double get totalPrice => _items.fold(
       0.0, (total, item) => total + item.precio * item.cantidad);
 
+  Future<void> obtenerCarrito() async{
+    _items = await operaciones_db().getCarrito();
+    notifyListeners();
+  }
   void addToCart(CartItem item) {
     final index = _items.indexWhere(
             (element) => element.id == item.id && element.talla == item.talla);
     if (index >= 0) {
+      operaciones_db().actualizarCantidad(item, _items[index].cantidad + item.cantidad);
       _items[index].cantidad += item.cantidad;
     } else {
+      operaciones_db().addProducto(item);
       _items.add(item);
     }
     notifyListeners();
@@ -24,6 +31,7 @@ class CartProvider with ChangeNotifier {
   void removeFromCart(CartItem item) {
     _items.removeWhere(
             (element) => element.id == item.id && element.talla == item.talla);
+    operaciones_db().deleteProducto(item);
     notifyListeners();
   }
 
@@ -31,12 +39,14 @@ class CartProvider with ChangeNotifier {
     final index = _items.indexWhere(
             (element) => element.id == item.id && element.talla == item.talla);
     if (index >= 0) {
+      operaciones_db().actualizarCantidad(item, nuevaCantidad);
       _items[index].cantidad = nuevaCantidad;
       notifyListeners();
     }
   }
 
   void clearCart() {
+    operaciones_db().limpiarCarrito();
     _items.clear();
     notifyListeners();
   }

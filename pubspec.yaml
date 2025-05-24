@@ -24,7 +24,11 @@ dependencies:
   confetti: ^0.7.0
   intl: ^0.18.1  # ✅ ya está aquí correctamente
   image_picker: ^1.0.4
-
+  connectivity_plus: ^5.0.2
+  sqflite: any
+  path: any
+  path_provider: ^2.0.14
+  flutter_image_compress: ^2.1.0
 
 dev_dependencies:
   flutter_test:

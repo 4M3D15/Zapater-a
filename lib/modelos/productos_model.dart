@@ -19,8 +19,9 @@ class ProductosModel with ChangeNotifier {
     try {
       _productos = await _firestoreService.obtenerProductos();
     } catch (e) {
-      error = 'Error al obtener productos: $e';
+      error = 'Error al cargar los productos, comuniquese con soporte tecnico\n(Error $e)';
       debugPrint(error);
+      print('Error al obtener productos: $e');
     } finally {
       isLoading = false;
       notifyListeners();

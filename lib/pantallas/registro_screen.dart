@@ -1,10 +1,15 @@
-// lib/pantallas/registro_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:zapato/modelos/favoritos_model.dart';
+import 'package:zapato/modelos/productos_model.dart';
+import 'package:zapato/proveedores/cart_provider.dart';
 
-import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
+import '../Servicios/db_local.dart';
+import '../widgets/animations.dart';
+import '../utils/firestore_service.dart'; // Traducción de errores
 
 class RegistroScreen extends StatefulWidget {
   const RegistroScreen({super.key});
@@ -26,6 +31,27 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
   bool _isLoading = false;
 
+  Future<bool?> _preguntarGuardarLocal() async {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Guardar inicio de sesión'),
+        content: const Text('¿Quieres guardar tus datos para iniciar sesión localmente?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Sí'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _registerUser() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
@@ -41,13 +67,38 @@ class _RegistroScreenState extends State<RegistroScreen> {
           'nombre': _nombreController.text.trim(),
           'apellido': _apellidoController.text.trim(),
           'correo': _emailController.text.trim(),
+          'avatar': "",
           'fechaRegistro': FieldValue.serverTimestamp(),
         });
-        if (mounted) Navigator.pushReplacementNamed(context, '/');
+
+        if (mounted) {
+          // Preguntar si quiere guardar localmente
+          final guardarLocal = await _preguntarGuardarLocal();
+
+          try {
+            final user_id = _auth.currentUser?.uid;
+            final doc = await _firestore.collection('usuarios').doc(user_id).get();
+            final data = doc.data();
+
+            // Solo guardar local si el usuario aceptó
+            if (guardarLocal == true && data != null) {
+              await operaciones_db().setUsuarioLocal(data, _passwordController.text);
+            }
+
+            context.read<CartProvider>().obtenerCarrito();
+            context.read<FavoritosModel>().obtenerFavoritos();
+            context.read<ProductosModel>().obtenerProductos();
+          } catch (e) {
+            print('Error al guardar el usuario en local: $e');
+          }
+
+          Navigator.pushReplacementNamed(context, '/');
+        }
       }
     } on FirebaseAuthException catch (e) {
+      final mensaje = traducirErrorFirebase(e.code);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Error al registrar el usuario'), backgroundColor: Colors.red),
+        SnackBar(content: Text(mensaje), backgroundColor: Colors.red),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -83,7 +134,6 @@ class _RegistroScreenState extends State<RegistroScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Título
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 100),
                   child: const Text(
@@ -92,46 +142,75 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
-                // Nombre
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 200),
-                  child: TextFormField(
-                    controller: _nombreController,
-                    decoration: InputDecoration(
-                      labelText: "Nombre",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      prefixIcon: const Icon(Icons.person),
-                    ),
-                    validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu nombre" : null,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _nombreController,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]')),
+                          TextInputFormatter.withFunction(
+                                (oldValue, newValue) => newValue.copyWith(
+                              text: newValue.text.toUpperCase(),
+                              selection: newValue.selection,
+                            ),
+                          ),
+                        ],
+                        decoration: InputDecoration(
+                          labelText: "Nombre",
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          filled: true,
+                          fillColor: Colors.white,
+                          prefixIcon: const Icon(Icons.person),
+                        ),
+                        validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu nombre" : null,
+                      ),
+                      const SizedBox(height: 5),
+                      const Text(
+                        "El nombre se convertirá automáticamente a mayúsculas.",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
-                // Apellido
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 300),
-                  child: TextFormField(
-                    controller: _apellidoController,
-                    decoration: InputDecoration(
-                      labelText: "Apellido",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      prefixIcon: const Icon(Icons.person),
-                    ),
-                    validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu apellido" : null,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _apellidoController,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]')),
+                          TextInputFormatter.withFunction(
+                                (oldValue, newValue) => newValue.copyWith(
+                              text: newValue.text.toUpperCase(),
+                              selection: newValue.selection,
+                            ),
+                          ),
+                        ],
+                        decoration: InputDecoration(
+                          labelText: "Apellido",
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          filled: true,
+                          fillColor: Colors.white,
+                          prefixIcon: const Icon(Icons.person),
+                        ),
+                        validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu apellido" : null,
+                      ),
+                      const SizedBox(height: 5),
+                      const Text(
+                        "El apellido se convertirá automáticamente a mayúsculas.",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
-                // Correo
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 400),
                   child: TextFormField(
@@ -147,10 +226,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu correo" : null,
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
-                // Contraseña
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 500),
                   child: TextFormField(
@@ -166,10 +242,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu contraseña" : null,
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
-                // Confirmar Contraseña
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 600),
                   child: TextFormField(
@@ -182,14 +255,10 @@ class _RegistroScreenState extends State<RegistroScreen> {
                       fillColor: Colors.white,
                       prefixIcon: const Icon(Icons.lock),
                     ),
-                    validator: (v) =>
-                    v != _passwordController.text ? "Las contraseñas no coinciden" : null,
+                    validator: (v) => v != _passwordController.text ? "Las contraseñas no coinciden" : null,
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
-                // Botón de Registro
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 700),
                   child: ElevatedButton(
@@ -204,10 +273,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
-                // Link al Login
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 800),
                   child: TextButton(

@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../modelos/favoritos_model.dart';
@@ -15,19 +15,26 @@ class BusquedaScreen extends StatefulWidget {
   _BusquedaScreenState createState() => _BusquedaScreenState();
 }
 
-class _BusquedaScreenState extends State<BusquedaScreen>
-    with TickerProviderStateMixin {
+class _BusquedaScreenState extends State<BusquedaScreen> with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final FirestoreService _firestoreService = FirestoreService();
   List<Producto> productos = [];
   List<Producto> filteredProductos = [];
   List<String> sugerencias = [];
   OverlayEntry? _explosionOverlay;
+  bool _sinInternet = false;
 
   @override
   void initState() {
     super.initState();
     _loadProductos();
+    _verificarConexion();
+
+    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      setState(() {
+        _sinInternet = (result == ConnectivityResult.none);
+      });
+    });
   }
 
   Future<void> _loadProductos() async {
@@ -41,9 +48,14 @@ class _BusquedaScreenState extends State<BusquedaScreen>
   void _searchProducts(String query) {
     final lower = query.toLowerCase();
     setState(() {
-      filteredProductos = productos
-          .where((p) => p.nombre.toLowerCase().contains(lower))
-          .toList();
+      filteredProductos = productos.where((p) {
+        return p.nombre.toLowerCase().contains(lower) ||
+            p.descripcion.toLowerCase().contains(lower) ||
+            p.categoria.toLowerCase().contains(lower) ||
+            p.color.toLowerCase().contains(lower) ||
+            p.sexo.toLowerCase().contains(lower);
+      }).toList();
+
       sugerencias = productos
           .where((p) => p.nombre.toLowerCase().startsWith(lower))
           .map((p) => p.nombre)
@@ -64,6 +76,13 @@ class _BusquedaScreenState extends State<BusquedaScreen>
     Overlay.of(context).insert(_explosionOverlay!);
   }
 
+  Future<void> _verificarConexion() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    setState(() {
+      _sinInternet = (connectivityResult == ConnectivityResult.none);
+    });
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -72,6 +91,20 @@ class _BusquedaScreenState extends State<BusquedaScreen>
 
   @override
   Widget build(BuildContext context) {
+
+    if (_sinInternet) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.wifi_off, size: 80, color: Colors.grey),
+            SizedBox(height: 16),
+            Text('Sin conexión a internet', style: TextStyle(fontSize: 18)),
+          ],
+        ),
+      );
+    }
+
     return SlideFadeIn(
       index: 0,
       child: Padding(
@@ -156,18 +189,21 @@ class _BusquedaScreenState extends State<BusquedaScreen>
                             children: [
                               Expanded(
                                 child: Stack(
+                                  fit: StackFit.expand,
                                   children: [
                                     ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(
-                                          top: Radius.circular(10)),
+                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
                                       child: producto.imagen.isNotEmpty
                                           ? Image.network(
                                         producto.imagen,
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
+                                        fit: BoxFit.fitWidth,
+                                        //width: double.infinity,
+                                        //height: double.infinity,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Icon(Icons.image_not_supported);
+                                        },
                                       )
-                                          : const Icon(Icons.image,
-                                          size: 50, color: Colors.grey),
+                                          : const Icon(Icons.image, size: 50, color: Colors.grey),
                                     ),
                                     Positioned(
                                       top: 8,
@@ -203,8 +239,7 @@ class _BusquedaScreenState extends State<BusquedaScreen>
                                   children: [
                                     Text(
                                       producto.nombre,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),

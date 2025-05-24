@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:zapato/pantallas/resumen_screen.dart';
 
 // Firebase Options generado automáticamente
 import 'firebase_options.dart';
@@ -16,14 +16,14 @@ import 'pantallas/registro_screen.dart';
 import 'pantallas/perfil_screen.dart';
 import 'pantallas/product_detail_screen.dart';
 import 'pantallas/pago_screen.dart';
-
+import 'pantallas/resumen_screen.dart';
 
 // Proveedores
 import 'proveedores/cart_provider.dart';
 import 'modelos/favoritos_model.dart';
 import 'modelos/productos_model.dart';
 
-// Observador de rutas para animaciones o tracking
+// Observador de rutas
 final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
 
 void main() async {
@@ -41,8 +41,8 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => CartProvider()),
-        ChangeNotifierProvider(create: (_) => FavoritosModel()),
+        ChangeNotifierProvider(create: (_) => CartProvider()..obtenerCarrito()),
+        ChangeNotifierProvider(create: (_) => FavoritosModel()..obtenerFavoritos()),
         ChangeNotifierProvider(create: (_) => ProductosModel()..obtenerProductos()),
       ],
       child: const MyApp(),
@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Zapato',
       navigatorObservers: [routeObserver],
-      initialRoute: '/welcome',
+      initialRoute: FirebaseAuth.instance.currentUser != null ? '/' : '/welcome',
       routes: {
         '/welcome': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginScreen(),
@@ -68,10 +68,8 @@ class MyApp extends StatelessWidget {
         '/cart': (context) => const CartScreen(),
         '/perfil': (context) => const ProfileScreen(),
         '/pago': (context) => const PagoScreen(),
-        '/resumen': (context) => const ResumenScreen(),
-        '/inicio': (context) => const InicioScreen(),
+        // '/resumen' se maneja dinámicamente con onGenerateRoute
       },
-      // Ruta dinámica para detalle de producto
       onGenerateRoute: (settings) {
         if (settings.name == '/product') {
           final productId = settings.arguments as String;
@@ -79,6 +77,18 @@ class MyApp extends StatelessWidget {
             builder: (_) => ProductDetailScreen(productId: productId),
           );
         }
+
+        if (settings.name == '/resumen') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (_) => ResumenScreen(
+              direccion: args['direccion'],
+              productos: args['productos'],
+              total: args['total'],
+            ),
+          );
+        }
+
         return null;
       },
     );

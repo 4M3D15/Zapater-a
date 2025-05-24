@@ -31,8 +31,8 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
     final doc = await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).get();
     final data = doc.data();
     if (data != null) {
-      _nombreCtrl.text = data['nombre'] ?? '';
-      _apellidoCtrl.text = data['apellido'] ?? '';
+      _nombreCtrl.text = (data['nombre'] ?? '').toString().toUpperCase();
+      _apellidoCtrl.text = (data['apellido'] ?? '').toString().toUpperCase();
       _emailCtrl.text = user.email ?? '';
     }
     setState(() => _isLoading = false);
@@ -43,8 +43,8 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
     if (user == null) return;
     setState(() => _guardando = true);
     await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).update({
-      'nombre': _nombreCtrl.text.trim(),
-      'apellido': _apellidoCtrl.text.trim(),
+      'nombre': _nombreCtrl.text.trim().toUpperCase(),
+      'apellido': _apellidoCtrl.text.trim().toUpperCase(),
     });
     setState(() => _guardando = false);
     if (context.mounted) {
@@ -62,18 +62,41 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
     super.dispose();
   }
 
-  Widget _buildField(String label, TextEditingController c, {bool enabled = true, int index = 0}) {
+  Widget _buildField(String label, TextEditingController c,
+      {bool enabled = true, int index = 0, bool toUpperCase = false}) {
     return SlideFadeInFromBottom(
       delay: Duration(milliseconds: 100 * index),
-      child: TextFormField(
-        controller: c,
-        enabled: enabled,
-        decoration: InputDecoration(
-          labelText: label,
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            controller: c,
+            enabled: enabled,
+            onChanged: toUpperCase
+                ? (value) {
+              final upper = value.toUpperCase();
+              c.value = c.value.copyWith(
+                text: upper,
+                selection: TextSelection.collapsed(offset: upper.length),
+              );
+            }
+                : null,
+            decoration: InputDecoration(
+              labelText: label,
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          if (toUpperCase)
+            const Padding(
+              padding: EdgeInsets.only(top: 4, left: 4),
+              child: Text(
+                'Se convertirá automáticamente a MAYÚSCULAS.',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -103,15 +126,15 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
                 child: Center(
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundImage: AssetImage('assets/avatar_default.png'),
+                    backgroundImage: AssetImage('assets/avatar.png'),
                     backgroundColor: Colors.grey.shade200,
                   ),
                 ),
               ),
               const SizedBox(height: 30),
-              _buildField('Nombre', _nombreCtrl, index: 2),
+              _buildField('Nombre', _nombreCtrl, index: 2, toUpperCase: true),
               const SizedBox(height: 16),
-              _buildField('Apellido', _apellidoCtrl, index: 3),
+              _buildField('Apellido', _apellidoCtrl, index: 3, toUpperCase: true),
               const SizedBox(height: 16),
               _buildField('Correo electrónico', _emailCtrl, enabled: false, index: 4),
               const SizedBox(height: 30),

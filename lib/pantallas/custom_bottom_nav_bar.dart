@@ -52,7 +52,8 @@ class CustomBottomNavBar extends StatelessWidget {
                   onTap: () => onTap(index),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    //de 12 -> 8
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? Colors.white.withOpacity(0.1)

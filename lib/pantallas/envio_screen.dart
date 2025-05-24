@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter/services.dart';
 
 import '../modelos/cart_model.dart';
-import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
+import '../widgets/animations.dart';
 
 class EnvioScreen extends StatefulWidget {
   final List<CartItem> productos;
@@ -19,7 +19,6 @@ class EnvioScreen extends StatefulWidget {
 }
 
 class _EnvioScreenState extends State<EnvioScreen> {
-  late GoogleMapController _mapController;
   final _codigoPostalController = TextEditingController();
   final _calleController = TextEditingController();
   final _numeroController = TextEditingController();
@@ -27,8 +26,6 @@ class _EnvioScreenState extends State<EnvioScreen> {
   final _ciudadController = TextEditingController();
   final _estadoController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
-  final LatLng _ubicacionInicial = const LatLng(19.4326, -99.1332);
 
   @override
   void dispose() {
@@ -42,16 +39,23 @@ class _EnvioScreenState extends State<EnvioScreen> {
   }
 
   Widget _campoTexto(TextEditingController c, String label, int index) {
+    final esDireccion = label != 'Código Postal';
     return SlideFadeIn(
       index: index,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: TextFormField(
           controller: c,
-          keyboardType: label == 'Código Postal' ? TextInputType.number : TextInputType.text,
+          textCapitalization:
+          esDireccion ? TextCapitalization.characters : TextCapitalization.none,
+          inputFormatters: label == 'Código Postal'
+              ? [FilteringTextInputFormatter.digitsOnly]
+              : [UpperCaseTextFormatter()],
+          keyboardType: label == 'Código Postal'
+              ? TextInputType.number
+              : TextInputType.text,
           maxLength: label == 'Código Postal' ? 5 : null,
           buildCounter: (_, {int currentLength = 0, bool isFocused = false, int? maxLength}) => null,
-
           decoration: InputDecoration(
             labelText: label,
             border: const OutlineInputBorder(),
@@ -85,45 +89,28 @@ class _EnvioScreenState extends State<EnvioScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Mapa
-                  SlideFadeInFromBottom(
-                    delay: const Duration(milliseconds: 100),
-                    child: SizedBox(
-                      height: 180,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: GoogleMap(
-                          onMapCreated: (c) => _mapController = c,
-                          initialCameraPosition: CameraPosition(
-                            target: _ubicacionInicial,
-                            zoom: 14,
-                          ),
-                          markers: {
-                            Marker(
-                              markerId: const MarkerId("destino"),
-                              position: _ubicacionInicial,
-                            ),
-                          },
-                        ),
+                  SlideFadeIn(
+                    index: 0,
+                    child: const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        "* Calle, número, colonia, ciudad y estado se convierten automáticamente en mayúsculas.",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 16),
-
-                  // Campos de texto
-                  _campoTexto(_codigoPostalController, 'Código Postal', 2),
-                  _campoTexto(_calleController, 'Calle', 3),
-                  _campoTexto(_numeroController, 'Número', 4),
-                  _campoTexto(_coloniaController, 'Colonia', 5),
-                  _campoTexto(_ciudadController, 'Ciudad', 6),
-                  _campoTexto(_estadoController, 'Estado', 7),
+                  _campoTexto(_codigoPostalController, 'Código Postal', 1),
+                  _campoTexto(_calleController, 'Calle', 2),
+                  _campoTexto(_numeroController, 'Número', 3),
+                  _campoTexto(_coloniaController, 'Colonia', 4),
+                  _campoTexto(_ciudadController, 'Ciudad', 5),
+                  _campoTexto(_estadoController, 'Estado', 6),
 
                   const SizedBox(height: 20),
 
-                  // Título productos
                   SlideFadeIn(
-                    index: 8,
+                    index: 7,
                     child: const Text(
                       "Productos en tu compra:",
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -132,9 +119,8 @@ class _EnvioScreenState extends State<EnvioScreen> {
 
                   const SizedBox(height: 8),
 
-                  // Lista de productos
                   ...widget.productos.asMap().entries.map((entry) {
-                    final i = 9 + entry.key;
+                    final i = 8 + entry.key;
                     final item = entry.value;
                     final cantidad = item.cantidad;
                     final precioTotal = item.precio * cantidad;
@@ -148,8 +134,7 @@ class _EnvioScreenState extends State<EnvioScreen> {
                           child: Image.network(
                             item.imagen,
                             fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, st) =>
-                            const Icon(Icons.error, size: 50),
+                            errorBuilder: (ctx, err, st) => const Icon(Icons.error, size: 50),
                           ),
                         ),
                         title: Text(item.nombre),
@@ -162,7 +147,6 @@ class _EnvioScreenState extends State<EnvioScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Botón continuar pago
                   SlideFadeInFromBottom(
                     delay: Duration(milliseconds: 100 * (widget.productos.length + 10)),
                     child: ElevatedButton(
@@ -218,6 +202,17 @@ class _EnvioScreenState extends State<EnvioScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+// Formatter personalizado para convertir a mayúsculas mientras se escribe
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    return newValue.copyWith(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
     );
   }
 }

@@ -7,6 +7,7 @@ class Producto {
   final String descripcion;
   final double precio;
   final String imagen;
+  final String sexo;
   final String talla;
   final String color;
 
@@ -17,6 +18,7 @@ class Producto {
     required this.descripcion,
     required this.precio,
     required this.imagen,
+    required this.sexo,
     required this.talla,
     required this.color,
   });
@@ -29,6 +31,7 @@ class Producto {
       'Descripcion': descripcion,
       'Precio': precio,
       'Imagen': imagen,
+      'Sexo': sexo,
       'Talla': talla,
       'Color': color,
     };
@@ -55,6 +58,7 @@ class Producto {
       categoria: _parseString(data['Categoria'], placeholder: 'Sin categoría'),
       descripcion: _parseString(data['Descripcion'], placeholder: ''),
       precio: (data['Precio'] as num?)?.toDouble() ?? 0.0,
+      sexo: _parseString(data['Sexo'], placeholder: ''),
       imagen: _parseImagen(data['Imagen']),
       talla: _parseString(data['Talla'], placeholder: ''),
       color: _parseString(data['Color'], placeholder: ''),
