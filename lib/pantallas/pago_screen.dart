@@ -74,6 +74,45 @@ class _PagoScreenState extends State<PagoScreen> {
     }
   }
 
+  void _confirmarPago(String direccion, List<CartItem> productos, double total) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Confirmar compra'),
+        content: const Text('¿Estás seguro de realizar la compra?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(context).pop(); // cerrar el diálogo
+              await _guardarPedido(direccion, productos, total, _tipoTarjeta);
+
+              if (!mounted) return;
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Pago realizado con éxito')),
+              );
+
+              Navigator.pushReplacementNamed(
+                context,
+                '/resumen',
+                arguments: {
+                  'direccion': direccion,
+                  'productos': productos,
+                  'total': total,
+                },
+              );
+            },
+            child: const Text('Aceptar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
@@ -218,23 +257,9 @@ class _PagoScreenState extends State<PagoScreen> {
                   const SizedBox(height: 20),
 
                   ElevatedButton(
-                    onPressed: () async {
+                    onPressed: () {
                       if (_formKey.currentState?.validate() ?? false) {
-                        await _guardarPedido(direccion, productos, total, _tipoTarjeta);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Pago realizado con éxito')),
-                        );
-
-                        Navigator.pushReplacementNamed(
-                          context,
-                          '/resumen',
-                          arguments: {
-                            'direccion': direccion,
-                            'productos': productos,
-                            'total': total,
-                          },
-                        );
+                        _confirmarPago(direccion, productos, total);
                       }
                     },
                     child: const Text('Pagar ahora'),

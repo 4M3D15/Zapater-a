@@ -48,12 +48,21 @@ class _EnvioScreenState extends State<EnvioScreen> {
         padding: const EdgeInsets.only(bottom: 12),
         child: TextFormField(
           controller: c,
+          keyboardType: label == 'Código Postal' ? TextInputType.number : TextInputType.text,
+          maxLength: label == 'Código Postal' ? 5 : null,
+          buildCounter: (_, {int currentLength = 0, bool isFocused = false, int? maxLength}) => null,
+
           decoration: InputDecoration(
             labelText: label,
             border: const OutlineInputBorder(),
           ),
-          validator: (v) =>
-          (v == null || v.isEmpty) ? 'Este campo es obligatorio' : null,
+          validator: (v) {
+            if (v == null || v.trim().isEmpty) return 'Este campo es obligatorio';
+            if (label == 'Código Postal' && v.trim().length != 5) {
+              return 'El código postal debe tener 5 dígitos';
+            }
+            return null;
+          },
         ),
       ),
     );
@@ -72,7 +81,7 @@ class _EnvioScreenState extends State<EnvioScreen> {
             padding: const EdgeInsets.all(16),
             child: Form(
               key: _formKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
+              autovalidateMode: AutovalidateMode.disabled,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -117,8 +126,7 @@ class _EnvioScreenState extends State<EnvioScreen> {
                     index: 8,
                     child: const Text(
                       "Productos en tu compra:",
-                      style:
-                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
 
@@ -156,9 +164,7 @@ class _EnvioScreenState extends State<EnvioScreen> {
 
                   // Botón continuar pago
                   SlideFadeInFromBottom(
-                    delay: Duration(
-                        milliseconds:
-                        100 * (widget.productos.length + 10)),
+                    delay: Duration(milliseconds: 100 * (widget.productos.length + 10)),
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState?.validate() ?? false) {
@@ -171,15 +177,14 @@ class _EnvioScreenState extends State<EnvioScreen> {
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: const Text(
-                                  'Dirección válida. Redirigiendo a pago...'),
+                              content: const Text('Dirección válida. Redirigiendo a pago...'),
                               backgroundColor: Colors.green.shade600,
                               duration: const Duration(seconds: 1),
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                              margin: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             ),
                           );
 
@@ -201,7 +206,8 @@ class _EnvioScreenState extends State<EnvioScreen> {
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30)),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                       ),
                       child: const Text("Continuar con el pago"),
                     ),

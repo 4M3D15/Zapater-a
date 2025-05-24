@@ -1,10 +1,8 @@
-// lib/pantallas/editar_perfil_screen.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
+import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeInFromBottom
 
 class EditarPerfilScreen extends StatefulWidget {
   const EditarPerfilScreen({super.key});
@@ -99,51 +97,24 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Avatar
+              // Avatar fijo
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 100),
                 child: Center(
-                  child: Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundImage: AssetImage('assets/avatar_default.png'),
-                        backgroundColor: Colors.grey.shade200,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.black87,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.edit, size: 20),
-                          color: Colors.white,
-                          onPressed: () {
-                            // implementar selector de avatar
-                          },
-                        ),
-                      ),
-                    ],
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: AssetImage('assets/avatar_default.png'),
+                    backgroundColor: Colors.grey.shade200,
                   ),
                 ),
               ),
-
               const SizedBox(height: 30),
-
-              // Nombre
               _buildField('Nombre', _nombreCtrl, index: 2),
               const SizedBox(height: 16),
-
-              // Apellido
               _buildField('Apellido', _apellidoCtrl, index: 3),
               const SizedBox(height: 16),
-
-              // Correo (no editable)
               _buildField('Correo electrónico', _emailCtrl, enabled: false, index: 4),
               const SizedBox(height: 30),
-
-              // Botón Guardar
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 500),
                 child: ElevatedButton.icon(
