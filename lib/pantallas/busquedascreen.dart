@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../modelos/favoritos_model.dart';
@@ -15,8 +14,7 @@ class BusquedaScreen extends StatefulWidget {
   _BusquedaScreenState createState() => _BusquedaScreenState();
 }
 
-class _BusquedaScreenState extends State<BusquedaScreen>
-    with TickerProviderStateMixin {
+class _BusquedaScreenState extends State<BusquedaScreen> with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final FirestoreService _firestoreService = FirestoreService();
   List<Producto> productos = [];
@@ -41,9 +39,14 @@ class _BusquedaScreenState extends State<BusquedaScreen>
   void _searchProducts(String query) {
     final lower = query.toLowerCase();
     setState(() {
-      filteredProductos = productos
-          .where((p) => p.nombre.toLowerCase().contains(lower))
-          .toList();
+      filteredProductos = productos.where((p) {
+        return p.nombre.toLowerCase().contains(lower) ||
+            p.descripcion.toLowerCase().contains(lower) ||
+            p.categoria.toLowerCase().contains(lower) ||
+            p.color.toLowerCase().contains(lower) ||
+            p.sexo.toLowerCase().contains(lower);
+      }).toList();
+
       sugerencias = productos
           .where((p) => p.nombre.toLowerCase().startsWith(lower))
           .map((p) => p.nombre)
@@ -158,16 +161,14 @@ class _BusquedaScreenState extends State<BusquedaScreen>
                                 child: Stack(
                                   children: [
                                     ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(
-                                          top: Radius.circular(10)),
+                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
                                       child: producto.imagen.isNotEmpty
                                           ? Image.network(
                                         producto.imagen,
                                         fit: BoxFit.cover,
                                         width: double.infinity,
                                       )
-                                          : const Icon(Icons.image,
-                                          size: 50, color: Colors.grey),
+                                          : const Icon(Icons.image, size: 50, color: Colors.grey),
                                     ),
                                     Positioned(
                                       top: 8,
@@ -203,8 +204,7 @@ class _BusquedaScreenState extends State<BusquedaScreen>
                                   children: [
                                     Text(
                                       producto.nombre,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),

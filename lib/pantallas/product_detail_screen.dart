@@ -310,9 +310,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 delay: const Duration(milliseconds: 500),
                 child: Text('Color: ${producto.color}', style: const TextStyle(fontSize: 16)),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 5),
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 600),
+                child: Text('Sexo: ${producto.sexo}', style: const TextStyle(fontSize: 16)),
+              ),
+              const SizedBox(height: 10),
+              SlideFadeInFromBottom(
+                delay: const Duration(milliseconds: 700),
                 child: ElevatedButton(
                   onPressed: _mostrarSelectorTallas,
                   child: Text('Talla: $tallaSeleccionada'),
@@ -320,7 +325,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               const SizedBox(height: 10),
               SlideFadeInFromBottom(
-                delay: const Duration(milliseconds: 700),
+                delay: const Duration(milliseconds: 800),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
