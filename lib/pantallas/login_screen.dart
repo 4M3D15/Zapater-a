@@ -1,8 +1,7 @@
-// lib/pantallas/login_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
+import '../widgets/animations.dart'; // Contiene navigateWithLoading
+import 'inicio.dart'; // Asegúrate de que el path sea correcto
 import 'registro_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -29,11 +28,18 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailCtrl.text.trim(),
         password: _passCtrl.text,
       );
-      if (mounted) Navigator.pushReplacementNamed(context, '/');
+
+      if (mounted) {
+        await navigateWithLoading(context, const InicioScreen(), replace: true);
+      }
     } on FirebaseAuthException catch (e) {
       String message = 'Error al iniciar sesión';
-      if (e.code == 'user-not-found') message = 'Usuario no encontrado';
-      else if (e.code == 'wrong-password') message = 'Contraseña incorrecta';
+      if (e.code == 'user-not-found') {
+        message = 'Usuario no encontrado';
+      } else if (e.code == 'wrong-password') {
+        message = 'Contraseña incorrecta';
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: Colors.red),
       );

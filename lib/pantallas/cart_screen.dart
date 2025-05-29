@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:zapato/proveedores/cart_provider.dart';
 import 'package:zapato/modelos/cart_model.dart';
 import 'package:zapato/pantallas/envio_screen.dart';
-import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
+import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom, navigateWithLoading
 
 const kBackgroundColor = Color(0xFFFDFDF8);
 
@@ -38,8 +38,7 @@ class CartScreen extends StatelessWidget {
                       ),
                       child: Text(
                         '$itemCount',
-                        style:
-                        const TextStyle(color: Colors.white, fontSize: 12),
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
                       ),
                     ),
                   ),
@@ -72,10 +71,8 @@ class CartScreen extends StatelessWidget {
                       duration: const Duration(milliseconds: 500),
                       curve: Curves.easeOutBack,
                       child: Card(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Row(
@@ -92,13 +89,11 @@ class CartScreen extends StatelessWidget {
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(item.nombre,
                                         style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16)),
+                                            fontWeight: FontWeight.bold, fontSize: 16)),
                                     const SizedBox(height: 4),
                                     Text("Talla: ${item.talla}"),
                                     const SizedBox(height: 4),
@@ -108,40 +103,30 @@ class CartScreen extends StatelessWidget {
                                           icon: const Icon(Icons.remove),
                                           onPressed: () {
                                             if (item.cantidad > 1) {
-                                              cart.updateQuantity(item,
-                                                  item.cantidad - 1);
+                                              cart.updateQuantity(item, item.cantidad - 1);
                                             }
                                           },
                                         ),
                                         Text('${item.cantidad}',
-                                            style: const TextStyle(
-                                                fontWeight:
-                                                FontWeight.bold)),
+                                            style: const TextStyle(fontWeight: FontWeight.bold)),
                                         IconButton(
                                           icon: const Icon(Icons.add),
                                           onPressed: () async {
-                                            final nuevoValor =
-                                                item.cantidad + 1;
-                                            final stockDisponible =
-                                            await cart
-                                                .getStockDisponible(
-                                                item.id,
-                                                item.talla);
+                                            final nuevoValor = item.cantidad + 1;
+                                            final stockDisponible = await cart.getStockDisponible(
+                                              item.id,
+                                              item.talla,
+                                            );
 
-                                            if (nuevoValor <=
-                                                stockDisponible) {
-                                              cart.updateQuantity(item,
-                                                  nuevoValor);
+                                            if (nuevoValor <= stockDisponible) {
+                                              cart.updateQuantity(item, nuevoValor);
                                             } else {
-                                              ScaffoldMessenger.of(
-                                                  context)
-                                                  .showSnackBar(
+                                              ScaffoldMessenger.of(context).showSnackBar(
                                                 SnackBar(
                                                   content: Text(
                                                     "Solo hay $stockDisponible unidades disponibles para la talla ${item.talla}.",
                                                   ),
-                                                  backgroundColor:
-                                                  Colors.orange,
+                                                  backgroundColor: Colors.orange,
                                                 ),
                                               );
                                             }
@@ -156,14 +141,11 @@ class CartScreen extends StatelessWidget {
                                 children: [
                                   Text(
                                     "\$${(item.precio * item.cantidad).toStringAsFixed(2)}",
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold),
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete,
-                                        color: Colors.red),
-                                    onPressed: () =>
-                                        cart.removeFromCart(item),
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () => cart.removeFromCart(item),
                                   ),
                                 ],
                               ),
@@ -175,8 +157,6 @@ class CartScreen extends StatelessWidget {
                   },
                 ),
               ),
-
-              // Total y botón
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 200),
                 duration: const Duration(milliseconds: 700),
@@ -199,12 +179,10 @@ class CartScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text("Total",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16)),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           Text(
                             "\$${cart.totalPrice.toStringAsFixed(2)}",
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ],
                       ),
@@ -213,31 +191,27 @@ class CartScreen extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                           minimumSize: const Size(double.infinity, 50),
                         ),
-                        onPressed: () {
+                        onPressed: () async {
                           if (cart.items.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text(
-                                    "Agrega productos antes de continuar."),
+                                content: Text("Agrega productos antes de continuar."),
                                 backgroundColor: Colors.red,
                               ),
                             );
                           } else {
-                            final productos =
-                            List<CartItem>.from(cart.items);
+                            final productos = List<CartItem>.from(cart.items);
                             final total = cart.totalPrice;
                             cart.clearCart();
-                            Navigator.push(
+
+                            await navigateWithLoading(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => EnvioScreen(
-                                  productos: productos,
-                                  total: total,
-                                ),
+                              EnvioScreen(
+                                productos: productos,
+                                total: total,
                               ),
                             );
                           }

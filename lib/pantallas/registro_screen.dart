@@ -1,10 +1,9 @@
-// lib/pantallas/registro_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
+import 'welcome_screen.dart'; // Asegúrate de importar tu pantalla de inicio
 
 class RegistroScreen extends StatefulWidget {
   const RegistroScreen({super.key});
@@ -43,7 +42,9 @@ class _RegistroScreenState extends State<RegistroScreen> {
           'correo': _emailController.text.trim(),
           'fechaRegistro': FieldValue.serverTimestamp(),
         });
-        if (mounted) Navigator.pushReplacementNamed(context, '/');
+        if (mounted) {
+          await navigateWithLoading(context, const WelcomeScreen(), replace: true);
+        }
       }
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -83,7 +84,6 @@ class _RegistroScreenState extends State<RegistroScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Título
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 100),
                   child: const Text(
@@ -92,10 +92,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
-                // Nombre
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 200),
                   child: TextFormField(
@@ -110,10 +107,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu nombre" : null,
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
-                // Apellido
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 300),
                   child: TextFormField(
@@ -128,10 +122,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu apellido" : null,
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
-                // Correo
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 400),
                   child: TextFormField(
@@ -147,10 +138,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu correo" : null,
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
-                // Contraseña
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 500),
                   child: TextFormField(
@@ -166,10 +154,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu contraseña" : null,
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
-                // Confirmar Contraseña
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 600),
                   child: TextFormField(
@@ -186,10 +171,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     v != _passwordController.text ? "Las contraseñas no coinciden" : null,
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
-                // Botón de Registro
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 700),
                   child: ElevatedButton(
@@ -204,10 +186,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
-                // Link al Login
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 800),
                   child: TextButton(

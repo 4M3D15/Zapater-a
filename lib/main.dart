@@ -3,6 +3,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:zapato/pantallas/resumen_screen.dart';
+import 'package:zapato/widgets/navigation_helper.dart'; // Ajusta el path si es diferente
+import 'package:zapato/pantallas/perfil_screen.dart';   // Asegúrate de importar la pantalla
+
 
 // Firebase Options generado automáticamente
 import 'firebase_options.dart';

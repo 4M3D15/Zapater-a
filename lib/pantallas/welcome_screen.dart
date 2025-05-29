@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:zapato/widgets/navigation_helper.dart'; // Importa tu helper
+import 'package:zapato/pantallas/login_screen.dart';
+import 'package:zapato/pantallas/registro_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -94,7 +97,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   child: Column(
                     children: [
                       ElevatedButton(
-                        onPressed: () => Navigator.pushNamed(context, '/login'),
+                        onPressed: () =>
+                            navigateWithLoading(context, const LoginScreen()),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(
@@ -105,13 +109,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         ),
                         child: const Text(
                           'Iniciar Sesión',
-                          style:
-                          TextStyle(fontSize: 18, color: Colors.white),
+                          style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
                       ),
                       const SizedBox(height: 16),
                       OutlinedButton(
-                        onPressed: () => Navigator.pushNamed(context, '/registro'),
+                        onPressed: () => navigateWithLoading(
+                            context, const RegistroScreen()),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Colors.black),
                           padding: const EdgeInsets.symmetric(
