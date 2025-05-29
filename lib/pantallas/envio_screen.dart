@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../modelos/cart_model.dart';
-import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
+import '../widgets/animations.dart';
 
 class EnvioScreen extends StatefulWidget {
   final List<CartItem> productos;
@@ -38,13 +39,21 @@ class _EnvioScreenState extends State<EnvioScreen> {
   }
 
   Widget _campoTexto(TextEditingController c, String label, int index) {
+    final esDireccion = label != 'Código Postal';
     return SlideFadeIn(
       index: index,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: TextFormField(
           controller: c,
-          keyboardType: label == 'Código Postal' ? TextInputType.number : TextInputType.text,
+          textCapitalization:
+          esDireccion ? TextCapitalization.characters : TextCapitalization.none,
+          inputFormatters: label == 'Código Postal'
+              ? [FilteringTextInputFormatter.digitsOnly]
+              : [UpperCaseTextFormatter()],
+          keyboardType: label == 'Código Postal'
+              ? TextInputType.number
+              : TextInputType.text,
           maxLength: label == 'Código Postal' ? 5 : null,
           buildCounter: (_, {int currentLength = 0, bool isFocused = false, int? maxLength}) => null,
           decoration: InputDecoration(
@@ -80,7 +89,17 @@ class _EnvioScreenState extends State<EnvioScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Campos de texto (sin mapa)
+                  SlideFadeIn(
+                    index: 0,
+                    child: const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        "* Calle, número, colonia, ciudad y estado se convierten automáticamente en mayúsculas.",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+
                   _campoTexto(_codigoPostalController, 'Código Postal', 1),
                   _campoTexto(_calleController, 'Calle', 2),
                   _campoTexto(_numeroController, 'Número', 3),
@@ -90,7 +109,6 @@ class _EnvioScreenState extends State<EnvioScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Título productos
                   SlideFadeIn(
                     index: 7,
                     child: const Text(
@@ -101,7 +119,6 @@ class _EnvioScreenState extends State<EnvioScreen> {
 
                   const SizedBox(height: 8),
 
-                  // Lista de productos
                   ...widget.productos.asMap().entries.map((entry) {
                     final i = 8 + entry.key;
                     final item = entry.value;
@@ -117,8 +134,7 @@ class _EnvioScreenState extends State<EnvioScreen> {
                           child: Image.network(
                             item.imagen,
                             fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, st) =>
-                            const Icon(Icons.error, size: 50),
+                            errorBuilder: (ctx, err, st) => const Icon(Icons.error, size: 50),
                           ),
                         ),
                         title: Text(item.nombre),
@@ -131,7 +147,6 @@ class _EnvioScreenState extends State<EnvioScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Botón continuar pago
                   SlideFadeInFromBottom(
                     delay: Duration(milliseconds: 100 * (widget.productos.length + 10)),
                     child: ElevatedButton(
@@ -187,6 +202,17 @@ class _EnvioScreenState extends State<EnvioScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+// Formatter personalizado para convertir a mayúsculas mientras se escribe
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    return newValue.copyWith(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
     );
   }
 }

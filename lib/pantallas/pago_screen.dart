@@ -1,4 +1,3 @@
-// ... tus imports
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,7 +20,7 @@ class _PagoScreenState extends State<PagoScreen> {
 
   String _tipoTarjeta = 'debito';
   bool _isCreditoSelected = false;
-  bool _isLoading = false; // 👈 Nueva variable para mostrar carga
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -89,12 +88,12 @@ class _PagoScreenState extends State<PagoScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.of(context).pop(); // cerrar diálogo
-              setState(() => _isLoading = true); // 👈 activar loading
+              Navigator.of(context).pop();
+              setState(() => _isLoading = true);
               await _guardarPedido(direccion, productos, total, _tipoTarjeta);
 
               if (!mounted) return;
-              setState(() => _isLoading = false); // 👈 desactivar loading
+              setState(() => _isLoading = false);
 
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Pago realizado con éxito')),
@@ -193,8 +192,13 @@ class _PagoScreenState extends State<PagoScreen> {
                         controller: _nombreController,
                         decoration: const InputDecoration(
                           labelText: 'Nombre del Titular',
+                          helperText: 'Se convierte automáticamente en mayúsculas',
                           border: OutlineInputBorder(),
                         ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                          UpperCaseTextFormatter(),
+                        ],
                         validator: (value) => value == null || value.isEmpty ? 'Este campo es obligatorio' : null,
                       ),
                       const SizedBox(height: 12),
@@ -300,7 +304,6 @@ class _FechaExpiracionFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
     String digitsOnly = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
-
     if (digitsOnly.length > 4) {
       digitsOnly = digitsOnly.substring(0, 4);
     }
@@ -315,6 +318,16 @@ class _FechaExpiracionFormatter extends TextInputFormatter {
     return TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    return TextEditingValue(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
     );
   }
 }

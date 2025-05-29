@@ -171,25 +171,30 @@ class _InicioContentState extends State<InicioContent> {
             // Botones de filtro
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: ['Hombre', 'Mujer', 'Niño'].map((sexo) {
-                  final activo = _sexoSeleccionado == sexo;
-                  return ElevatedButton(
-                    onPressed: () {
-                      setState(() => _sexoSeleccionado = sexo);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: activo ? Colors.black87 : Colors.grey.shade300,
-                      foregroundColor: activo ? Colors.white : Colors.black,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    ),
-                    child: Text(sexo),
-                  );
-                }).toList(),
+              child: Center(
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 12,
+                  runSpacing: 8,
+                  children: ['Todos', 'Hombre', 'Mujer', 'Niño'].map((sexo) {
+                    final activo = _sexoSeleccionado == sexo;
+                    return ElevatedButton(
+                      onPressed: () {
+                        setState(() => _sexoSeleccionado = sexo);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: activo ? Colors.black87 : Colors.grey.shade300,
+                        foregroundColor: activo ? Colors.white : Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      child: Text(sexo),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
+
 
             const SizedBox(height: 12),
 

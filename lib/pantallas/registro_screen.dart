@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
+
 import '../utils/firebase_errors.dart';
-
-
-
-import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
-import 'welcome_screen.dart'; // Asegúrate de importar tu pantalla de inicio
+import '../widgets/animations.dart';
+import 'inicio.dart';
 
 class RegistroScreen extends StatefulWidget {
   const RegistroScreen({super.key});
@@ -40,13 +39,13 @@ class _RegistroScreenState extends State<RegistroScreen> {
       final user = userCredential.user;
       if (user != null) {
         await _firestore.collection('usuarios').doc(user.uid).set({
-          'nombre': _nombreController.text.trim(),
-          'apellido': _apellidoController.text.trim(),
+          'nombre': _nombreController.text.trim().toUpperCase(),
+          'apellido': _apellidoController.text.trim().toUpperCase(),
           'correo': _emailController.text.trim(),
           'fechaRegistro': FieldValue.serverTimestamp(),
         });
         if (mounted) {
-          await navigateWithLoading(context, const WelcomeScreen(), replace: true);
+          await navigateWithLoading(context, const InicioScreen(), replace: true);
         }
       }
     } on FirebaseAuthException catch (e) {
@@ -55,7 +54,6 @@ class _RegistroScreenState extends State<RegistroScreen> {
           content: Text(traducirErrorFirebase(e.code)),
           backgroundColor: Colors.red,
         ),
-
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -102,31 +100,69 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 const SizedBox(height: 20),
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 200),
-                  child: TextFormField(
-                    controller: _nombreController,
-                    decoration: InputDecoration(
-                      labelText: "Nombre",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      prefixIcon: const Icon(Icons.person),
-                    ),
-                    validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu nombre" : null,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _nombreController,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]')),
+                          TextInputFormatter.withFunction(
+                                (oldValue, newValue) => newValue.copyWith(
+                              text: newValue.text.toUpperCase(),
+                              selection: newValue.selection,
+                            ),
+                          ),
+                        ],
+                        decoration: InputDecoration(
+                          labelText: "Nombre",
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          filled: true,
+                          fillColor: Colors.white,
+                          prefixIcon: const Icon(Icons.person),
+                        ),
+                        validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu nombre" : null,
+                      ),
+                      const SizedBox(height: 5),
+                      const Text(
+                        "El nombre se convertirá automáticamente a mayúsculas.",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 10),
                 SlideFadeInFromBottom(
                   delay: const Duration(milliseconds: 300),
-                  child: TextFormField(
-                    controller: _apellidoController,
-                    decoration: InputDecoration(
-                      labelText: "Apellido",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      prefixIcon: const Icon(Icons.person),
-                    ),
-                    validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu apellido" : null,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _apellidoController,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]')),
+                          TextInputFormatter.withFunction(
+                                (oldValue, newValue) => newValue.copyWith(
+                              text: newValue.text.toUpperCase(),
+                              selection: newValue.selection,
+                            ),
+                          ),
+                        ],
+                        decoration: InputDecoration(
+                          labelText: "Apellido",
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          filled: true,
+                          fillColor: Colors.white,
+                          prefixIcon: const Icon(Icons.person),
+                        ),
+                        validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu apellido" : null,
+                      ),
+                      const SizedBox(height: 5),
+                      const Text(
+                        "El apellido se convertirá automáticamente a mayúsculas.",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 10),
