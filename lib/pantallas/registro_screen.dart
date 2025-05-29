@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../utils/firebase_errors.dart';
+
+
 
 import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
 import 'welcome_screen.dart'; // Asegúrate de importar tu pantalla de inicio
@@ -48,7 +51,11 @@ class _RegistroScreenState extends State<RegistroScreen> {
       }
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Error al registrar el usuario'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(traducirErrorFirebase(e.code)),
+          backgroundColor: Colors.red,
+        ),
+
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

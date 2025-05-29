@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../modelos/productos_model.dart';
 import '../modelos/favoritos_model.dart';
 import '../widgets/animated_favorite_icon.dart';
-import '../widgets/animations.dart'; // Asegúrate de tener esto
+import '../widgets/animations.dart';
 
 class InicioContent extends StatefulWidget {
   final ScrollController scrollController;
@@ -20,6 +20,7 @@ class _InicioContentState extends State<InicioContent> {
   int _currentPage = 0;
   Timer? _autoPlayTimer;
   List? _productos;
+  String _sexoSeleccionado = 'Todos';
 
   @override
   void initState() {
@@ -43,6 +44,11 @@ class _InicioContentState extends State<InicioContent> {
     super.dispose();
   }
 
+  List filtrarProductos(List productos) {
+    if (_sexoSeleccionado == 'Todos') return productos;
+    return productos.where((p) => p.sexo.toLowerCase() == _sexoSeleccionado.toLowerCase()).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final productosModel = context.watch<ProductosModel>();
@@ -54,6 +60,7 @@ class _InicioContentState extends State<InicioContent> {
     }
 
     _productos = productosModel.productos;
+    final productosFiltrados = filtrarProductos(_productos!);
     final size = MediaQuery.of(context).size;
     final carouselHeight = size.height * 0.28;
 
@@ -161,7 +168,32 @@ class _InicioContentState extends State<InicioContent> {
 
             const SizedBox(height: 12),
 
-            // Grid de productos
+            // Botones de filtro
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: ['Hombre', 'Mujer', 'Niño'].map((sexo) {
+                  final activo = _sexoSeleccionado == sexo;
+                  return ElevatedButton(
+                    onPressed: () {
+                      setState(() => _sexoSeleccionado = sexo);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: activo ? Colors.black87 : Colors.grey.shade300,
+                      foregroundColor: activo ? Colors.white : Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    ),
+                    child: Text(sexo),
+                  );
+                }).toList(),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Grid de productos filtrados
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: GridView.builder(
@@ -173,9 +205,9 @@ class _InicioContentState extends State<InicioContent> {
                   mainAxisSpacing: 12,
                   childAspectRatio: size.width < 600 ? 0.75 : 0.65,
                 ),
-                itemCount: _productos!.length,
+                itemCount: productosFiltrados.length,
                 itemBuilder: (ctx, i) {
-                  final p = _productos![i];
+                  final p = productosFiltrados[i];
                   return SlideFadeInFromBottom(
                     delay: Duration(milliseconds: 100 * i),
                     child: Material(
