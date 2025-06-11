@@ -7,6 +7,7 @@ class MisComprasScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     final String? correoUsuario = FirebaseAuth.instance.currentUser?.email;
 
     if (correoUsuario == null) {
@@ -16,6 +17,13 @@ class MisComprasScreen extends StatelessWidget {
         ),
       );
     }
+
+    final cardMargin = EdgeInsets.symmetric(
+      horizontal: size.width * 0.04,
+      vertical: size.height * 0.01,
+    );
+
+    final subtitleSpacing = size.height * 0.005;
 
     return Scaffold(
       appBar: AppBar(
@@ -39,6 +47,7 @@ class MisComprasScreen extends StatelessWidget {
           final compras = snapshot.data!.docs;
 
           return ListView.builder(
+            padding: EdgeInsets.symmetric(vertical: size.height * 0.01),
             itemCount: compras.length,
             itemBuilder: (context, index) {
               final compra = compras[index];
@@ -47,21 +56,27 @@ class MisComprasScreen extends StatelessWidget {
               final total = compra['total'] ?? 0;
 
               return Card(
-                margin: const EdgeInsets.all(10),
-                child: ListTile(
-                  title: Text(
-                    'Compra del ${fecha != null ? fecha.toString().substring(0, 16) : 'sin fecha'}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      for (var p in productos)
-                        Text(
-                            '${p['nombre'] ?? 'Producto'} x${p['cantidad'] ?? 1}'),
-                      const SizedBox(height: 5),
-                      Text('Total: \$${total.toStringAsFixed(2)}'),
-                    ],
+                margin: cardMargin,
+                child: Padding(
+                  padding: EdgeInsets.all(size.width * 0.04),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      'Compra del ${fecha != null ? fecha.toString().substring(0, 16) : 'sin fecha'}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (var p in productos)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: subtitleSpacing),
+                            child: Text('${p['nombre'] ?? 'Producto'} x${p['cantidad'] ?? 1}'),
+                          ),
+                        SizedBox(height: subtitleSpacing * 2),
+                        Text('Total: \$${total.toStringAsFixed(2)}'),
+                      ],
+                    ),
                   ),
                 ),
               );

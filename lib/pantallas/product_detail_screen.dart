@@ -279,8 +279,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   tag: producto.nombre,
                   child: Image.network(
                     producto.imagen,
-                    height: 200,
-                    fit: BoxFit.cover,
+
+                    fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 100),
                   ),
                 ),
@@ -303,7 +303,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(height: 5),
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 400),
-                child: Text('Descripción: ${producto.descripcion}', style: const TextStyle(fontSize: 16)),
+                child: Text(
+                    'Descripción: ${producto.descripcion}',
+                    style: const TextStyle(fontSize: 16),
+                      textAlign: TextAlign.justify,
+                    ),
               ),
               const SizedBox(height: 5),
               SlideFadeInFromBottom(

@@ -91,6 +91,8 @@ class _BusquedaScreenState extends State<BusquedaScreen> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    // Obtener tamaño de pantalla para adaptaciones responsivas
+    final size = MediaQuery.of(context).size;
 
     if (_sinInternet) {
       return const Center(
@@ -108,11 +110,11 @@ class _BusquedaScreenState extends State<BusquedaScreen> with TickerProviderStat
     return SlideFadeIn(
       index: 0,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 12.0),
+        padding: EdgeInsets.only(bottom: size.height * 0.015),
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(size.width * 0.025),
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
@@ -128,8 +130,10 @@ class _BusquedaScreenState extends State<BusquedaScreen> with TickerProviderStat
 
             if (sugerencias.isNotEmpty)
               Container(
-                constraints: const BoxConstraints(maxHeight: 120),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                constraints: BoxConstraints(
+                  maxHeight: size.height * 0.15,
+                ),
+                padding: EdgeInsets.symmetric(horizontal: size.width * 0.025),
                 child: ListView.builder(
                   itemCount: sugerencias.length,
                   itemBuilder: (_, i) {
@@ -145,14 +149,14 @@ class _BusquedaScreenState extends State<BusquedaScreen> with TickerProviderStat
                 ),
               ),
 
-            const SizedBox(height: 10),
+            SizedBox(height: size.height * 0.012),
 
             if (filteredProductos.isEmpty)
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 100),
-                child: const Padding(
-                  padding: EdgeInsets.only(top: 20),
-                  child: Text(
+                child: Padding(
+                  padding: EdgeInsets.only(top: size.height * 0.02),
+                  child: const Text(
                     'No se encontraron productos',
                     style: TextStyle(fontSize: 18),
                   ),
@@ -161,11 +165,11 @@ class _BusquedaScreenState extends State<BusquedaScreen> with TickerProviderStat
             else
               Expanded(
                 child: GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
+                  padding: EdgeInsets.symmetric(horizontal: size.width * 0.03),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: size.width < 600 ? 2 : 4, // Responsive: 2 columnas en móviles, 4 en pantallas grandes
+                    mainAxisSpacing: size.height * 0.015,
+                    crossAxisSpacing: size.width * 0.03,
                     childAspectRatio: 0.8,
                   ),
                   itemCount: filteredProductos.length,
@@ -197,17 +201,15 @@ class _BusquedaScreenState extends State<BusquedaScreen> with TickerProviderStat
                                           ? Image.network(
                                         producto.imagen,
                                         fit: BoxFit.fitWidth,
-                                        //width: double.infinity,
-                                        //height: double.infinity,
                                         errorBuilder: (context, error, stackTrace) {
-                                          return Icon(Icons.image_not_supported);
+                                          return const Icon(Icons.image_not_supported);
                                         },
                                       )
                                           : const Icon(Icons.image, size: 50, color: Colors.grey),
                                     ),
                                     Positioned(
-                                      top: 8,
-                                      right: 8,
+                                      top: size.height * 0.01,
+                                      right: size.width * 0.02,
                                       child: Consumer<FavoritosModel>(
                                         builder: (_, favs, __) {
                                           final isFav = favs.esFavorito(producto);
@@ -233,7 +235,7 @@ class _BusquedaScreenState extends State<BusquedaScreen> with TickerProviderStat
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.all(8),
+                                padding: EdgeInsets.all(size.width * 0.02),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -243,7 +245,7 @@ class _BusquedaScreenState extends State<BusquedaScreen> with TickerProviderStat
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    const SizedBox(height: 4),
+                                    SizedBox(height: size.height * 0.005),
                                     Text(
                                       '\$${producto.precio.toStringAsFixed(2)}',
                                       style: const TextStyle(color: Colors.green),

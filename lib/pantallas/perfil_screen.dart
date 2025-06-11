@@ -57,7 +57,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _sinInternet = (result == ConnectivityResult.none);
       });
-      // Opcional: recargar datos si cambia conexión
       if (!_sinInternet) _loadUserData();
     });
   }
@@ -176,6 +175,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+
     return Stack(
       children: [
         AnimatedPageWrapper(
@@ -191,123 +193,148 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             body: GestureDetector(
               onTap: () => FocusScope.of(context).unfocus(),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                child: SlideFadeIn(
-                  index: 0,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(
-                        child: GestureDetector(
-                          onTap: _pickAvatar,
-                          child: Hero(
-                            tag: 'profile-avatar',
-                            child: CircleAvatar(
-                              radius: 50,
-                              backgroundImage: _avatarProvider(),
-                              backgroundColor: Colors.grey.shade200,
-                              child: _avatarFile == null
-                                  ? const Icon(Icons.camera_alt, size: 30, color: Colors.white70)
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      TextField(
-                        controller: _nameController,
-                        inputFormatters: [UpperCaseTextFormatter()],
-                        decoration: InputDecoration(
-                          labelText: 'Nombre',
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: _lastNameController,
-                        inputFormatters: [UpperCaseTextFormatter()],
-                        decoration: InputDecoration(
-                          labelText: 'Apellido',
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: TextEditingController(text: _user.email ?? ''),
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          labelText: 'Correo electrónico',
-                          filled: true,
-                          fillColor: Colors.grey.shade100,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      ElevatedButton.icon(
-                        onPressed: _isLoading ? null : _updateProfile,
-                        icon: const Icon(Icons.save),
-                        label: const Text('Guardar Cambios'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          backgroundColor: const Color(0xF8F8F2FF),
-                          foregroundColor: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          if (_user.uid.isNotEmpty) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => MisComprasScreen(),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final avatarRadius = constraints.maxWidth * 0.15;
+                  final horizontalPadding = constraints.maxWidth * 0.06;
+                  final verticalSpacing = constraints.maxHeight * 0.025;
+
+                  final buttonHeight = constraints.maxHeight * 0.07;
+                  final fontSizeInput = constraints.maxWidth * 0.045;
+                  final fontSizeButtons = constraints.maxWidth * 0.045;
+
+                  return SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                      vertical: verticalSpacing,
+                    ),
+                    child: SlideFadeIn(
+                      index: 0,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Center(
+                            child: GestureDetector(
+                              onTap: _pickAvatar,
+                              child: Hero(
+                                tag: 'profile-avatar',
+                                child: CircleAvatar(
+                                  radius: avatarRadius.clamp(40, 70),
+                                  backgroundImage: _avatarProvider(),
+                                  backgroundColor: Colors.grey.shade200,
+                                  child: _avatarFile == null
+                                      ? Icon(Icons.camera_alt, size: avatarRadius * 0.6, color: Colors.white70)
+                                      : null,
+                                ),
                               ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('ID de usuario no disponible')),
-                            );
-                          }
-                        },
-                        icon: const Icon(Icons.shopping_bag),
-                        label: const Text('Mis Compras'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Center(
-                        child: GestureDetector(
-                          onTap: _signOut,
-                          child: const Text(
-                            'Cerrar sesión',
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              decoration: TextDecoration.none,
                             ),
                           ),
-                        ),
+                          SizedBox(height: verticalSpacing * 1.5),
+                          TextField(
+                            controller: _nameController,
+                            inputFormatters: [UpperCaseTextFormatter()],
+                            style: TextStyle(fontSize: fontSizeInput.clamp(14, 18)),
+                            decoration: InputDecoration(
+                              labelText: 'Nombre',
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              contentPadding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.7, horizontal: 16),
+                            ),
+                          ),
+                          SizedBox(height: verticalSpacing),
+                          TextField(
+                            controller: _lastNameController,
+                            inputFormatters: [UpperCaseTextFormatter()],
+                            style: TextStyle(fontSize: fontSizeInput.clamp(14, 18)),
+                            decoration: InputDecoration(
+                              labelText: 'Apellido',
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              contentPadding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.7, horizontal: 16),
+                            ),
+                          ),
+                          SizedBox(height: verticalSpacing),
+                          TextField(
+                            controller: TextEditingController(text: _user.email ?? ''),
+                            readOnly: true,
+                            style: TextStyle(fontSize: fontSizeInput.clamp(14, 18)),
+                            decoration: InputDecoration(
+                              labelText: 'Correo electrónico',
+                              filled: true,
+                              fillColor: Colors.grey.shade100,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              contentPadding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.7, horizontal: 16),
+                            ),
+                          ),
+                          SizedBox(height: verticalSpacing * 2),
+                          ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _updateProfile,
+                            icon: const Icon(Icons.save),
+                            label: Text('Guardar Cambios', style: TextStyle(fontSize: fontSizeButtons.clamp(14, 18))),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: buttonHeight * 0.35),
+                              backgroundColor: const Color(0xF8F8F2FF),
+                              foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                          SizedBox(height: verticalSpacing),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              if (_user.uid.isNotEmpty) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => MisComprasScreen(),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('ID de usuario no disponible')),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.shopping_bag),
+                            label: Text('Mis Compras', style: TextStyle(fontSize: fontSizeButtons.clamp(14, 18))),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: buttonHeight * 0.35),
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                          SizedBox(height: verticalSpacing * 2),
+                          Center(
+                            child: GestureDetector(
+                              onTap: _signOut,
+                              child: const Text(
+                                'Cerrar sesión',
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  decoration: TextDecoration.none,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
         ),
         if (_isLoading)
           Container(
-            color: Colors.black.withOpacity(0.3),
-            child: const Center(child: CircularProgressIndicator()),
+            color: Colors.black45,
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
           ),
       ],
     );

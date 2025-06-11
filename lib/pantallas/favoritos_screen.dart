@@ -104,7 +104,6 @@ class _FavoritosScreenState extends State<FavoritosScreen> with TickerProviderSt
 
   @override
   void dispose() {
-    //context.read<FavoritosModel>().removeListener(_syncFavorites);
     _favoritosModel?.removeListener(_syncFavorites);
     _timer?.cancel();
     super.dispose();
@@ -112,278 +111,255 @@ class _FavoritosScreenState extends State<FavoritosScreen> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final carouselHeight = size.height * 0.25;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final carouselHeight = screenHeight * 0.25;
 
-    return Stack(
-      children: [
-          SlideFadeIn(
-          index: 0,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SlideFadeInFromBottom(
-                  delay: const Duration(milliseconds: 100),
-                  child: const Padding(
-                    padding: EdgeInsets.only(top: 8.0),
-                    child: Center(
-                      child: Text("Favoritos", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+    return SafeArea(
+      child: Scaffold(
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Título y botón eliminar en fila fija con altura
+                  SizedBox(
+                    height: 70,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "",
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_forever),
+                            onPressed: () {
+                              if (_sinInternet) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Solo vista, sin acciones.")),
+                                );
+                                return;
+                              }
+                              final favoritos = context.read<FavoritosModel>().favoritos;
+                              if (favoritos.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("No hay favoritos para eliminar.")),
+                                );
+                                return;
+                              }
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text('¿Vaciar todos los favoritos?'),
+                                  action: SnackBarAction(
+                                    label: 'Sí',
+                                    onPressed: () async {
+                                      if (_sinInternet) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text("Solo vista, sin acciones.")),
+                                        );
+                                        return;
+                                      }
+                                      final favModel = context.read<FavoritosModel>();
+                                      final overlay = Overlay.of(context);
+                                      for (final prod in List<Producto>.from(favModel.favoritos)) {
+                                        final key = _tileKeys[prod];
+                                        final box = key?.currentContext?.findRenderObject() as RenderBox?;
+                                        if (box != null) {
+                                          final pos = box.localToGlobal(box.size.center(Offset.zero));
+                                          late OverlayEntry exp;
+                                          exp = OverlayEntry(
+                                            builder: (_) => ParticleExplosion(
+                                              position: pos,
+                                              onComplete: () => exp.remove(),
+                                            ),
+                                          );
+                                          overlay.insert(exp);
+                                          await _playExplosionSound();
+                                          await Future.delayed(const Duration(milliseconds: 100));
+                                        }
+                                        favModel.removerFavorito(prod);
+                                        await Future.delayed(const Duration(milliseconds: 150));
+                                      }
+                                    },
+                                  ),
+                                  duration: const Duration(seconds: 4),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                SlideFadeInFromBottom(
-                  delay: const Duration(milliseconds: 200),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.delete_forever),
-                        onPressed: () {
-                          if(_sinInternet){
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Solo vista, sin acciones.")),
-                            );
-                            return;
-                          }
-                          final favoritos = context.read<FavoritosModel>().favoritos;
-                          if (favoritos.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("No hay favoritos para eliminar.")),
-                            );
-                            return;
-                          }
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text('¿Vaciar todos los favoritos?'),
-                              action: SnackBarAction(
-                                label: 'Sí',
-                                onPressed: () async {
-                                  if(_sinInternet){
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text("Solo vista, sin acciones.")),
-                                    );
-                                    return;
-                                  }
-                                  final favModel = context.read<FavoritosModel>();
-                                  final overlay = Overlay.of(context);
-                                  for (final prod in List<Producto>.from(favModel.favoritos)) {
-                                    final key = _tileKeys[prod];
-                                    final box = key?.currentContext?.findRenderObject() as RenderBox?;
-                                    if (box != null) {
-                                      final pos = box.localToGlobal(box.size.center(Offset.zero));
-                                      late OverlayEntry exp;
-                                      exp = OverlayEntry(
-                                        builder: (_) => ParticleExplosion(
-                                          position: pos,
-                                          onComplete: () => exp.remove(),
-                                        ),
+
+                  // Lista favoritos o mensaje vacío
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: screenHeight * 0.45,
+                    ),
+                    child: _items.isEmpty
+                        ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: Text('No has seleccionado ningún favorito', style: TextStyle(fontSize: 18)),
+                      ),
+                    )
+                        : Scrollbar(
+                      thumbVisibility: true,
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: _items.length,
+                        itemBuilder: (context, index) {
+                          return SlideFadeInFromBottom(
+                            delay: Duration(milliseconds: 100 * (index + 1)),
+                            child: _buildFavoriteTile(_items[index]),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Sugerencias y carrusel con corazón para favoritos
+                  if (_sugerencias != null && _sugerencias!.isNotEmpty && !_sinInternet) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Text(
+                        'Sugerencias para ti',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: carouselHeight,
+                      child: PageView.builder(
+                        controller: _pageController,
+                        itemCount: _sugerencias!.length,
+                        onPageChanged: (i) => setState(() => _currentCarousel = i),
+                        itemBuilder: (_, i) {
+                          final p = _sugerencias![i];
+                          final esFavorito = context.watch<FavoritosModel>().esFavorito(p);
+                          return SlideFadeInFromBottom(
+                            delay: Duration(milliseconds: 100 * (i + 1)),
+                            child: Stack(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    if (_sinInternet) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text("Sin internet, no se puede abrir.")),
                                       );
-                                      overlay.insert(exp);
-                                      await _playExplosionSound();
-                                      await Future.delayed(const Duration(milliseconds: 100));
+                                      return;
                                     }
-                                    favModel.removerFavorito(prod);
-                                    await Future.delayed(const Duration(milliseconds: 150));
-                                  }
-                                },
-                              ),
-                              duration: const Duration(seconds: 4),
+                                    context.read<FavoritosModel>().agregarFavorito(p);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text("${p.nombre} agregado a favoritos")),
+                                    );
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 6),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(15),
+                                      image: DecorationImage(
+                                        image: NetworkImage(p.imagen),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    alignment: Alignment.bottomCenter,
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black54,
+                                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(15)),
+                                      ),
+                                      child: Text(
+                                        p.nombre,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                // Corazón en la esquina superior derecha
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: AnimatedFavoriteIcon(
+                                    esFavorito: esFavorito,
+                                    onTap: () async {
+                                      if (_sinInternet) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text("Solo vista, sin acciones.")),
+                                        );
+                                        return;
+                                      }
+                                      final favs = context.read<FavoritosModel>();
+                                      if (esFavorito) {
+                                        favs.removerFavorito(p);
+                                      } else {
+                                        favs.agregarFavorito(p);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         },
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: _items.isEmpty
-                      ? SlideFadeInFromBottom(
-                    delay: const Duration(milliseconds: 300),
-                    child: const Center(
-                      child: Text('No has seleccionado ningún favorito', style: TextStyle(fontSize: 18)),
                     ),
-                  )
-                      : AnimatedList(
-                    key: _listKey,
-                    initialItemCount: _items.length,
-                    physics: const BouncingScrollPhysics(),
-                    itemBuilder: (context, index, animation) {
-                      return SlideFadeInFromBottom(
-                        delay: Duration(milliseconds: 100 * (index + 1)),
-                        child: FadeTransition(
-                          opacity: animation,
-                          child: _buildFavoriteTile(_items[index]),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 12),
-                if (_sugerencias != null && _sugerencias!.isNotEmpty && !_sinInternet) ...[
-                  SlideFadeInFromBottom(
-                    delay: const Duration(milliseconds: 400),
-                    child: const Text('Sugerencias para ti', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: carouselHeight,
-                    child: PageView.builder(
-                      controller: _pageController,
-                      itemCount: _sugerencias!.length,
-                      onPageChanged: (i) => setState(() => _currentCarousel = i),
-                      itemBuilder: (_, i) {
-                        final p = _sugerencias![i];
-                        final esFavorito = context.watch<FavoritosModel>().esFavorito(p);
-                        return SlideFadeInFromBottom(
-                          delay: Duration(milliseconds: 100 * (i + 1)),
-                          child: GestureDetector(
-                            onTap: () {
-                              final favs = context.read<FavoritosModel>();
-                              esFavorito ? favs.removerFavorito(p) : favs.agregarFavorito(p);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Stack(
-                                  fit: StackFit.expand,
-                                  children: [
-                                    Image.network(
-                                        p.imagen,
-                                        fit: BoxFit.fitWidth,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return Icon(Icons.image_not_supported);
-                                        }
-                                    ),
-                                    Positioned(
-                                      top: 8,
-                                      right: 8,
-                                      child: AnimatedFavoriteIcon(
-                                        esFavorito: esFavorito,
-                                        onTap: () {
-                                          final favs = context.read<FavoritosModel>();
-                                          esFavorito ? favs.removerFavorito(p) : favs.agregarFavorito(p);
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _sugerencias!.length,
-                          (i) => Container(
-                        width: i == _currentCarousel ? 14 : 10,
-                        height: i == _currentCarousel ? 14 : 10,
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: i == _currentCarousel ? Colors.black87 : Colors.black26,
-                        ),
-                      ),
-                    ),
-                  ),
+                  ],
                 ],
-              ],
-            ),
-          ),
-        ),
-
-        if (_sinInternet)
-          Positioned.fill(
-            child: IgnorePointer(
-              ignoring: true, // para permitir que los toques pasen a widgets debajo
-              child: Container(
-                alignment: Alignment.topCenter,
-                child: SafeArea(
-                  child: AnimatedSlide(
-                    offset: Offset(0, _sinInternet ? 0 : -1),
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeInOut,
-                    child: Container(
-                      margin: const EdgeInsets.all(12),
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Text(
-                        'Sin conexión a Internet: Modo vista',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ),
               ),
             ),
-          ),
-
-      ],
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildFavoriteTile(Producto p) {
-    final key = _tileKeys.putIfAbsent(p, () => GlobalKey());
-
-    return Card(
-      key: key,
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  Widget _buildFavoriteTile(Producto producto) {
+    final esFavorito = context.watch<FavoritosModel>().esFavorito(producto);
+    _tileKeys[producto] = GlobalKey();
+    return Container(
+      key: _tileKeys[producto],
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+      ),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(8),
-        leading: Image.network(
-            p.imagen,
-            width: 50,
-            height: 50,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Icon(Icons.image_not_supported);
-            }
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(producto.imagen, width: 60, height: 60, fit: BoxFit.cover),
         ),
-        title: Text(p.nombre),
-        subtitle: Text('\$${p.precio.toStringAsFixed(2)}'),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete),
-          onPressed: () async {
-            if(_sinInternet){
+        title: Text(producto.nombre),
+        trailing: AnimatedFavoriteIcon(
+          esFavorito: esFavorito,
+          onTap: () async {
+            if (_sinInternet) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Solo vista, sin acciones.")),
               );
               return;
             }
-            final box = key.currentContext?.findRenderObject() as RenderBox?;
-            if (box != null) {
-              final center = box.localToGlobal(box.size.center(Offset.zero));
-              late OverlayEntry explosion;
-              explosion = OverlayEntry(
-                builder: (_) => ParticleExplosion(
-                  position: center,
-                  onComplete: () => explosion.remove(),
-                ),
-              );
-              Overlay.of(context).insert(explosion);
-              await _playExplosionSound();
+            final favs = context.read<FavoritosModel>();
+            if (esFavorito) {
+              favs.removerFavorito(producto);
+            } else {
+              favs.agregarFavorito(producto);
             }
-            context.read<FavoritosModel>().removerFavorito(p);
           },
         ),
       ),

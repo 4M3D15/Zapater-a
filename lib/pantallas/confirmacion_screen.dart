@@ -1,5 +1,3 @@
-// lib/pantallas/confirmacion_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:zapato/modelos/cart_model.dart';
 import '../widgets/animations.dart'; // AnimatedPageWrapper, SlideFadeIn, SlideFadeInFromBottom
@@ -39,6 +37,11 @@ class ConfirmacionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final horizontalPadding = size.width * 0.05; // 5% padding horizontal
+    final verticalSpacingSmall = size.height * 0.01;
+    final verticalSpacingMedium = size.height * 0.02;
+
     return AnimatedPageWrapper(
       child: Scaffold(
         appBar: AppBar(
@@ -47,10 +50,9 @@ class ConfirmacionScreen extends StatelessWidget {
           centerTitle: true,
         ),
         body: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(horizontalPadding),
           child: Column(
             children: [
-              // Lista de productos y detalles animada
               Expanded(
                 child: SlideFadeIn(
                   index: 0,
@@ -64,17 +66,19 @@ class ConfirmacionScreen extends StatelessWidget {
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: verticalSpacingSmall),
                       ...productos.asMap().entries.map((entry) {
                         final i = entry.key;
                         final item = entry.value;
                         return SlideFadeInFromBottom(
                           delay: Duration(milliseconds: 200 + i * 100),
                           child: Card(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            margin: EdgeInsets.symmetric(vertical: verticalSpacingSmall),
                             child: ListTile(
                               leading: Image.asset(item.imagen,
-                                  width: 50, height: 50, fit: BoxFit.cover),
+                                  width: size.width * 0.12,
+                                  height: size.width * 0.12,
+                                  fit: BoxFit.cover),
                               title: Text(item.nombre),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,9 +135,8 @@ class ConfirmacionScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: verticalSpacingMedium),
 
-              // Botón confirmar compra
               SlideFadeInFromBottom(
                 delay: Duration(milliseconds: 500 + productos.length * 100),
                 child: ElevatedButton.icon(
@@ -142,7 +145,7 @@ class ConfirmacionScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 50),
+                    minimumSize: Size(double.infinity, size.height * 0.07), // altura adaptativa
                   ),
                   onPressed: () => _confirmarCompra(context),
                 ),

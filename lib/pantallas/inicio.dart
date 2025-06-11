@@ -1,5 +1,3 @@
-// lib/pantallas/inicio.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -103,6 +101,15 @@ class _InicioScreenState extends State<InicioScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Obtener dimensiones y escala
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final textScale = MediaQuery.of(context).textScaleFactor;
+
+    // Padding adaptativo (5% horizontal, 2% vertical)
+    final horizontalPadding = screenWidth * 0.05;
+    final verticalPadding = screenHeight * 0.02;
+
     return Scaffold(
       backgroundColor: const Color(0xFFFDFDF8),
       extendBody: true,
@@ -115,12 +122,12 @@ class _InicioScreenState extends State<InicioScreen>
                   FadeTransition(opacity: anim, child: child),
               child: Padding(
                 key: ValueKey(_titulos[_currentIndex]),
-                padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding, vertical: verticalPadding),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Título de la sección
+                    // Título de la sección con tamaño adaptado
                     Text(
                       _titulos[_currentIndex],
                       style: Theme.of(context)
@@ -129,6 +136,9 @@ class _InicioScreenState extends State<InicioScreen>
                           ?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
+                        fontSize:
+                        (Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24) *
+                            textScale,
                       ),
                     ),
 

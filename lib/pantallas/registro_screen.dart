@@ -9,7 +9,7 @@ import 'package:zapato/proveedores/cart_provider.dart';
 
 import '../Servicios/db_local.dart';
 import '../widgets/animations.dart';
-import '../utils/firestore_service.dart'; // Traducción de errores
+import '../utils/firestore_service.dart';
 
 class RegistroScreen extends StatefulWidget {
   const RegistroScreen({super.key});
@@ -72,7 +72,6 @@ class _RegistroScreenState extends State<RegistroScreen> {
         });
 
         if (mounted) {
-          // Preguntar si quiere guardar localmente
           final guardarLocal = await _preguntarGuardarLocal();
 
           try {
@@ -80,7 +79,6 @@ class _RegistroScreenState extends State<RegistroScreen> {
             final doc = await _firestore.collection('usuarios').doc(user_id).get();
             final data = doc.data();
 
-            // Solo guardar local si el usuario aceptó
             if (guardarLocal == true && data != null) {
               await operaciones_db().setUsuarioLocal(data, _passwordController.text);
             }
@@ -117,6 +115,8 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return AnimatedPageWrapper(
       child: Scaffold(
         backgroundColor: Colors.grey[200],
@@ -127,166 +127,189 @@ class _RegistroScreenState extends State<RegistroScreen> {
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.black),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SlideFadeInFromBottom(
-                  delay: const Duration(milliseconds: 100),
-                  child: const Text(
-                    "Crea tu cuenta",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SlideFadeInFromBottom(
-                  delay: const Duration(milliseconds: 200),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextFormField(
-                        controller: _nombreController,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]')),
-                          TextInputFormatter.withFunction(
-                                (oldValue, newValue) => newValue.copyWith(
-                              text: newValue.text.toUpperCase(),
-                              selection: newValue.selection,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            double horizontalPadding = 20;
+            double maxFormWidth = 500; // Para que no crezca mucho en pantallas grandes
+
+            if (constraints.maxWidth > 600) {
+              horizontalPadding = constraints.maxWidth * 0.15;
+            }
+
+            return SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 20),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxFormWidth),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SlideFadeInFromBottom(
+                          delay: const Duration(milliseconds: 100),
+                          child: Text(
+                            "Crea tu cuenta",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: screenWidth < 350 ? 20 : 24,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ],
-                        decoration: InputDecoration(
-                          labelText: "Nombre",
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          filled: true,
-                          fillColor: Colors.white,
-                          prefixIcon: const Icon(Icons.person),
                         ),
-                        validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu nombre" : null,
-                      ),
-                      const SizedBox(height: 5),
-                      const Text(
-                        "El nombre se convertirá automáticamente a mayúsculas.",
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SlideFadeInFromBottom(
-                  delay: const Duration(milliseconds: 300),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextFormField(
-                        controller: _apellidoController,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]')),
-                          TextInputFormatter.withFunction(
-                                (oldValue, newValue) => newValue.copyWith(
-                              text: newValue.text.toUpperCase(),
-                              selection: newValue.selection,
+                        const SizedBox(height: 20),
+                        SlideFadeInFromBottom(
+                          delay: const Duration(milliseconds: 200),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextFormField(
+                                controller: _nombreController,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]')),
+                                  TextInputFormatter.withFunction(
+                                        (oldValue, newValue) => newValue.copyWith(
+                                      text: newValue.text.toUpperCase(),
+                                      selection: newValue.selection,
+                                    ),
+                                  ),
+                                ],
+                                decoration: InputDecoration(
+                                  labelText: "Nombre",
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  prefixIcon: const Icon(Icons.person),
+                                ),
+                                validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu nombre" : null,
+                              ),
+                              const SizedBox(height: 5),
+                              const Text(
+                                "El nombre se convertirá automáticamente a mayúsculas.",
+                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        SlideFadeInFromBottom(
+                          delay: const Duration(milliseconds: 300),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextFormField(
+                                controller: _apellidoController,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]')),
+                                  TextInputFormatter.withFunction(
+                                        (oldValue, newValue) => newValue.copyWith(
+                                      text: newValue.text.toUpperCase(),
+                                      selection: newValue.selection,
+                                    ),
+                                  ),
+                                ],
+                                decoration: InputDecoration(
+                                  labelText: "Apellido",
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  prefixIcon: const Icon(Icons.person),
+                                ),
+                                validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu apellido" : null,
+                              ),
+                              const SizedBox(height: 5),
+                              const Text(
+                                "El apellido se convertirá automáticamente a mayúsculas.",
+                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        SlideFadeInFromBottom(
+                          delay: const Duration(milliseconds: 400),
+                          child: TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              labelText: "Correo Electrónico",
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              filled: true,
+                              fillColor: Colors.white,
+                              prefixIcon: const Icon(Icons.email),
+                            ),
+                            validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu correo" : null,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        SlideFadeInFromBottom(
+                          delay: const Duration(milliseconds: 500),
+                          child: TextFormField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: "Contraseña",
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              filled: true,
+                              fillColor: Colors.white,
+                              prefixIcon: const Icon(Icons.lock),
+                            ),
+                            validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu contraseña" : null,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        SlideFadeInFromBottom(
+                          delay: const Duration(milliseconds: 600),
+                          child: TextFormField(
+                            controller: _confirmPasswordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: "Confirmar Contraseña",
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              filled: true,
+                              fillColor: Colors.white,
+                              prefixIcon: const Icon(Icons.lock),
+                            ),
+                            validator: (v) => v != _passwordController.text ? "Las contraseñas no coinciden" : null,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SlideFadeInFromBottom(
+                          delay: const Duration(milliseconds: 700),
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _registerUser,
+                            child: _isLoading
+                                ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            )
+                                : const Text("Registrarse", style: TextStyle(color: Colors.white, fontSize: 18)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
                           ),
-                        ],
-                        decoration: InputDecoration(
-                          labelText: "Apellido",
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          filled: true,
-                          fillColor: Colors.white,
-                          prefixIcon: const Icon(Icons.person),
                         ),
-                        validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu apellido" : null,
-                      ),
-                      const SizedBox(height: 5),
-                      const Text(
-                        "El apellido se convertirá automáticamente a mayúsculas.",
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SlideFadeInFromBottom(
-                  delay: const Duration(milliseconds: 400),
-                  child: TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: "Correo Electrónico",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      prefixIcon: const Icon(Icons.email),
-                    ),
-                    validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu correo" : null,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SlideFadeInFromBottom(
-                  delay: const Duration(milliseconds: 500),
-                  child: TextFormField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: "Contraseña",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      prefixIcon: const Icon(Icons.lock),
-                    ),
-                    validator: (v) => v == null || v.isEmpty ? "Por favor ingresa tu contraseña" : null,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SlideFadeInFromBottom(
-                  delay: const Duration(milliseconds: 600),
-                  child: TextFormField(
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: "Confirmar Contraseña",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      prefixIcon: const Icon(Icons.lock),
-                    ),
-                    validator: (v) => v != _passwordController.text ? "Las contraseñas no coinciden" : null,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SlideFadeInFromBottom(
-                  delay: const Duration(milliseconds: 700),
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _registerUser,
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text("Registrarse", style: TextStyle(color: Colors.white, fontSize: 18)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        const SizedBox(height: 10),
+                        SlideFadeInFromBottom(
+                          delay: const Duration(milliseconds: 800),
+                          child: TextButton(
+                            onPressed: () => Navigator.pushNamed(context, '/login'),
+                            child: const Text(
+                              "¿Ya tienes cuenta? Inicia sesión",
+                              style: TextStyle(fontSize: 16, color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                SlideFadeInFromBottom(
-                  delay: const Duration(milliseconds: 800),
-                  child: TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/login'),
-                    child: const Text(
-                      "¿Ya tienes cuenta? Inicia sesión",
-                      style: TextStyle(fontSize: 16, color: Colors.black),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
