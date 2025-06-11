@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../modelos/cart_model.dart';
+import '../pantallas/inicio.dart';
 
 class ResumenScreen extends StatelessWidget {
   final String direccion;
@@ -64,7 +65,10 @@ class ResumenScreen extends StatelessWidget {
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => InicioScreen()), // Asegúrate que 'Inicio' es el widget de inicio
+                        (route) => false,
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,

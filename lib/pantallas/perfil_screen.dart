@@ -7,12 +7,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zapato/Servicios/db_local.dart';
 import 'package:zapato/pantallas/welcome_screen.dart';
+import 'package:zapato/pantallas/mis_compras_screen.dart';
 import '../widgets/animations.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
-// Formatter personalizado para convertir texto a mayúsculas mientras se escribe
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
@@ -50,13 +50,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     _nameController = TextEditingController();
     _lastNameController = TextEditingController();
-    _loadUserData();
     _verificarConexion();
+    _loadUserData();
 
     Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
       setState(() {
         _sinInternet = (result == ConnectivityResult.none);
       });
+      // Opcional: recargar datos si cambia conexión
+      if (!_sinInternet) _loadUserData();
     });
   }
 
@@ -67,23 +69,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserData() async {
     try {
+      _user = _auth.currentUser!;
       if (_sinInternet) {
         final usuario = await operaciones_db().getUsuario();
         _nameController.text = capitalize(usuario['nombre'] ?? '');
         _lastNameController.text = capitalize(usuario['apellido'] ?? '');
-        _avatarFile = File(usuario['avatar']);
+        _avatarFile = usuario['avatar'] != null && usuario['avatar'] != "" ? File(usuario['avatar']) : null;
       } else {
-        _user = _auth.currentUser!;
         final doc = await _firestore.collection('usuarios').doc(_user.uid).get();
         final data = doc.data();
         if (data != null) {
           _nameController.text = capitalize(data['nombre'] ?? '');
           _lastNameController.text = capitalize(data['apellido'] ?? '');
-          _avatarFile = data['avatar'] == "" ? null : File(data['avatar']);
+          _avatarFile = data['avatar'] != null && data['avatar'] != "" ? File(data['avatar']) : null;
         }
       }
     } catch (e) {
-      print('Error de datos: $e');
+      print('Error al cargar datos del usuario: $e');
     }
     setState(() {});
   }
@@ -129,10 +131,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final updateData = {
         'nombre': nombre,
         'apellido': apellido,
-        'avatar': _avatarLocalPath ?? '',
+        'avatar': _avatarLocalPath ?? (_avatarFile?.path ?? ''),
       };
 
-      operaciones_db().actualizarUsuario(updateData);
+      await operaciones_db().actualizarUsuario(updateData);
 
       await _firestore.collection('usuarios').doc(_user.uid).update(updateData);
       await _user.updateDisplayName(nombre);
@@ -196,111 +198,102 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      SlideFadeInFromBottom(
-                        delay: const Duration(milliseconds: 100),
-                        child: Center(
-                          child: GestureDetector(
-                            onTap: _pickAvatar,
-                            child: Hero(
-                              tag: 'profile-avatar',
-                              child: CircleAvatar(
-                                radius: 50,
-                                backgroundImage: _avatarProvider(),
-                                backgroundColor: Colors.grey.shade200,
-                                child: _avatarFile == null
-                                    ? const Icon(Icons.camera_alt, size: 30, color: Colors.white70)
-                                    : null,
-                              ),
+                      Center(
+                        child: GestureDetector(
+                          onTap: _pickAvatar,
+                          child: Hero(
+                            tag: 'profile-avatar',
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundImage: _avatarProvider(),
+                              backgroundColor: Colors.grey.shade200,
+                              child: _avatarFile == null
+                                  ? const Icon(Icons.camera_alt, size: 30, color: Colors.white70)
+                                  : null,
                             ),
                           ),
                         ),
                       ),
                       const SizedBox(height: 30),
-
-                      SlideFadeInFromBottom(
-                        delay: const Duration(milliseconds: 200),
-                        child: TextField(
-                          controller: _nameController,
-                          inputFormatters: [UpperCaseTextFormatter()],
-                          decoration: InputDecoration(
-                            labelText: 'Nombre',
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
+                      TextField(
+                        controller: _nameController,
+                        inputFormatters: [UpperCaseTextFormatter()],
+                        decoration: InputDecoration(
+                          labelText: 'Nombre',
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                       const SizedBox(height: 20),
-
-                      SlideFadeInFromBottom(
-                        delay: const Duration(milliseconds: 300),
-                        child: TextField(
-                          controller: _lastNameController,
-                          inputFormatters: [UpperCaseTextFormatter()],
-                          decoration: InputDecoration(
-                            labelText: 'Apellido',
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
+                      TextField(
+                        controller: _lastNameController,
+                        inputFormatters: [UpperCaseTextFormatter()],
+                        decoration: InputDecoration(
+                          labelText: 'Apellido',
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                       const SizedBox(height: 20),
-
-                      SlideFadeInFromBottom(
-                        delay: const Duration(milliseconds: 400),
-                        child: TextField(
-                          controller: TextEditingController(text: _user.email ?? ''),
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            labelText: 'Correo electrónico',
-                            filled: true,
-                            fillColor: Colors.grey.shade100,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
+                      TextField(
+                        controller: TextEditingController(text: _user.email ?? ''),
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: 'Correo electrónico',
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                       const SizedBox(height: 30),
-
-                      SlideFadeInFromBottom(
-                        delay: const Duration(milliseconds: 500),
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.save),
-                          label: _isLoading
-                              ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                              : const Text('Guardar cambios'),
-                          onPressed: () {
-                            if (_sinInternet) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Solo vista, sin acciones.")),
-                              );
-                              return;
-                            }
-                            if (!_isLoading) _updateProfile();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
+                      ElevatedButton.icon(
+                        onPressed: _isLoading ? null : _updateProfile,
+                        icon: const Icon(Icons.save),
+                        label: const Text('Guardar Cambios'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: const Color(0xF8F8F2FF),
+                          foregroundColor: Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 15),
-
-                      SlideFadeInFromBottom(
-                        delay: const Duration(milliseconds: 600),
-                        child: TextButton.icon(
-                          icon: const Icon(Icons.logout),
-                          label: const Text('Cerrar sesión'),
-                          onPressed: _signOut,
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.red,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            textStyle: const TextStyle(fontSize: 16),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          if (_user.uid.isNotEmpty) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => MisComprasScreen(),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('ID de usuario no disponible')),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.shopping_bag),
+                        label: const Text('Mis Compras'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Center(
+                        child: GestureDetector(
+                          onTap: _signOut,
+                          child: const Text(
+                            'Cerrar sesión',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              decoration: TextDecoration.none,
+                            ),
                           ),
                         ),
                       ),
@@ -311,29 +304,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ),
-        if (_sinInternet)
-          Positioned.fill(
-            child: IgnorePointer(
-              ignoring: true,
-              child: Container(
-                alignment: Alignment.topCenter,
-                child: SafeArea(
-                  child: AnimatedSlide(
-                    offset: const Offset(0, 0),
-                    duration: const Duration(milliseconds: 400),
-                    child: Container(
-                      color: Colors.red.shade100,
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.all(12),
-                      child: const Text(
-                        'Sin conexión a internet',
-                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+        if (_isLoading)
+          Container(
+            color: Colors.black.withOpacity(0.3),
+            child: const Center(child: CircularProgressIndicator()),
           ),
       ],
     );
