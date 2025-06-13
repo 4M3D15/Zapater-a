@@ -210,7 +210,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     constraints: const BoxConstraints(),
                   );
                 }),
-                const Spacer(),
+
                 ElevatedButton(onPressed: _agregarResena, child: const Text('Agregar')),
               ],
             ),
