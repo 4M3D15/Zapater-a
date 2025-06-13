@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +38,15 @@ void main() async {
   // Inicializa formato de fechas en español
   await initializeDateFormatting('es');
 
+  // Estilo del sistema para eliminar sombras y bordes por defecto
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarDividerColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.dark,
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+  ));
+
   // Ejecuta la aplicación
   runApp(
     MultiProvider(
@@ -59,6 +69,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Zapato',
       navigatorObservers: [routeObserver],
+      theme: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: Colors.white,
+      ),
       initialRoute: FirebaseAuth.instance.currentUser != null ? '/' : '/welcome',
       routes: {
         '/welcome': (context) => const WelcomeScreen(),
@@ -68,7 +82,6 @@ class MyApp extends StatelessWidget {
         '/cart': (context) => const CartScreen(),
         '/perfil': (context) => const ProfileScreen(),
         '/pago': (context) => const PagoScreen(),
-        // '/resumen' se maneja dinámicamente con onGenerateRoute
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/product') {

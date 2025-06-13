@@ -184,6 +184,7 @@ class _BusquedaScreenState extends State<BusquedaScreen> with TickerProviderStat
                           arguments: producto.id,
                         ),
                         child: Card(
+                          color: Colors.white,
                           elevation: 3,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),

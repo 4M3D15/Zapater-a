@@ -111,7 +111,7 @@ class _InicioScreenState extends State<InicioScreen>
     final verticalPadding = screenHeight * 0.02;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFDFDF8),
+      backgroundColor: Colors.white,
       extendBody: true,
       body: SafeArea(
         child: Column(

@@ -50,6 +50,12 @@ class _EnvioScreenState extends State<EnvioScreen> {
           esDireccion ? TextCapitalization.characters : TextCapitalization.none,
           inputFormatters: label == 'Código Postal'
               ? [FilteringTextInputFormatter.digitsOnly]
+              : label == 'Ciudad' || label == 'Estado'
+              ? [
+            FilteringTextInputFormatter.allow(
+                RegExp(r'[A-Za-zÁÉÍÓÚÑáéíóúñ\s]')),
+            UpperCaseTextFormatter(),
+          ]
               : [UpperCaseTextFormatter()],
           keyboardType: label == 'Código Postal' ? TextInputType.number : TextInputType.text,
           maxLength: label == 'Código Postal' ? 5 : null,
@@ -75,15 +81,15 @@ class _EnvioScreenState extends State<EnvioScreen> {
   Widget build(BuildContext context) {
     return AnimatedPageWrapper(
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
+          backgroundColor: Colors.white,
           title: const Text("Dirección de Envío"),
           centerTitle: true,
         ),
         body: LayoutBuilder(
           builder: (context, constraints) {
             final maxWidth = constraints.maxWidth;
-
-            // Para pantallas anchas (tablet), centrar el formulario con ancho máximo
             final contentWidth = maxWidth > 600 ? 600.0 : maxWidth;
 
             return SingleChildScrollView(
@@ -107,16 +113,13 @@ class _EnvioScreenState extends State<EnvioScreen> {
                             ),
                           ),
                         ),
-
                         _campoTexto(_codigoPostalController, 'Código Postal', 1),
                         _campoTexto(_calleController, 'Calle', 2),
                         _campoTexto(_numeroController, 'Número', 3),
                         _campoTexto(_coloniaController, 'Colonia', 4),
                         _campoTexto(_ciudadController, 'Ciudad', 5),
                         _campoTexto(_estadoController, 'Estado', 6),
-
                         const SizedBox(height: 20),
-
                         SlideFadeIn(
                           index: 7,
                           child: const Text(
@@ -124,9 +127,7 @@ class _EnvioScreenState extends State<EnvioScreen> {
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
-
                         const SizedBox(height: 8),
-
                         ...widget.productos.asMap().entries.map((entry) {
                           final i = 8 + entry.key;
                           final item = entry.value;
@@ -153,9 +154,7 @@ class _EnvioScreenState extends State<EnvioScreen> {
                             ),
                           );
                         }).toList(),
-
                         const SizedBox(height: 20),
-
                         SlideFadeInFromBottom(
                           delay: Duration(milliseconds: 100 * (widget.productos.length + 10)),
                           child: ElevatedButton(

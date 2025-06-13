@@ -28,71 +28,73 @@ class CustomBottomNavBar extends StatelessWidget {
           (total, item) => total + item.cantidad,
     );
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0, left: 16.0, right: 16.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.4),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(_items.length, (index) {
-                final item = _items[index];
-                final isSelected = index == currentIndex;
-                final isCart = index == 3;
+    return SafeArea(
+      top: false,  // solo aplica safearea abajo
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: Colors.white.withOpacity(0.05), width: 0.05),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(_items.length, (index) {
+                  final item = _items[index];
+                  final isSelected = index == currentIndex;
+                  final isCart = index == 3;
 
-                return GestureDetector(
-                  onTap: () => onTap(index),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    //de 12 -> 8
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? Colors.white.withOpacity(0.1)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        isCart
-                            ? _AnimatedCartIconWithBadge(
-                          icon: item.icon,
-                          count: cartItemCount,
-                          isSelected: isSelected,
-                        )
-                            : Icon(
-                          item.icon,
-                          color: isSelected ? Colors.white : Colors.grey[400],
-                        ),
-                        AnimatedSize(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                          child: isSelected
-                              ? Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: Text(
-                              item.label,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                  return GestureDetector(
+                    onTap: () => onTap(index),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Colors.white.withOpacity(0.1)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        children: [
+                          isCart
+                              ? _AnimatedCartIconWithBadge(
+                            icon: item.icon,
+                            count: cartItemCount,
+                            isSelected: isSelected,
                           )
-                              : const SizedBox.shrink(),
-                        ),
-                      ],
+                              : Icon(
+                            item.icon,
+                            color: isSelected ? Colors.white : Colors.grey[400],
+                          ),
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: isSelected
+                                ? Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: Text(
+                                item.label,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            )
+                                : const SizedBox.shrink(),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
+              ),
             ),
           ),
         ),
@@ -113,7 +115,8 @@ class _AnimatedCartIconWithBadge extends StatefulWidget {
   });
 
   @override
-  State<_AnimatedCartIconWithBadge> createState() => _AnimatedCartIconWithBadgeState();
+  State<_AnimatedCartIconWithBadge> createState() =>
+      _AnimatedCartIconWithBadgeState();
 }
 
 class _AnimatedCartIconWithBadgeState extends State<_AnimatedCartIconWithBadge>

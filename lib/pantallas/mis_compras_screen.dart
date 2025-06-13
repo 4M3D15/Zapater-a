@@ -26,7 +26,9 @@ class MisComprasScreen extends StatelessWidget {
     final subtitleSpacing = size.height * 0.005;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text('Mis Compras'),
       ),
       body: StreamBuilder<QuerySnapshot>(

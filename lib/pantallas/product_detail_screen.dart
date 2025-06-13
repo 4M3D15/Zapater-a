@@ -91,6 +91,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       builder: (_) => Padding(
         padding: const EdgeInsets.all(16),
         child: Wrap(
+
           spacing: 10,
           children: tallasStock.entries.map((entry) {
             final talla = entry.key;
@@ -163,6 +164,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 subtitle: Text(r.comentario),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: List.generate(5, (j) {
                     return Icon(
                       j < r.rating ? Icons.star : Icons.star_border,
@@ -193,7 +195,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             child: Wrap(
               spacing: 8,
               children: [
-                const Text('Calificación:'),
+                const SizedBox(
+                  width: double.infinity,
+                  child: Text('Calificación:'),
+                ),
                 ...List.generate(5, (i) {
                   return IconButton(
                     icon: Icon(
@@ -205,6 +210,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     constraints: const BoxConstraints(),
                   );
                 }),
+                const Spacer(),
                 ElevatedButton(onPressed: _agregarResena, child: const Text('Agregar')),
               ],
             ),
@@ -230,7 +236,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     return AnimatedPageWrapper(
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
+          backgroundColor: Colors.white,
           title: Text(producto.nombre),
           centerTitle: true,
           actions: [
@@ -269,6 +277,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ),
         body: SingleChildScrollView(
+
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -323,7 +332,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               SlideFadeInFromBottom(
                 delay: const Duration(milliseconds: 700),
                 child: ElevatedButton(
+
                   onPressed: _mostrarSelectorTallas,
+
                   child: Text('Talla: $tallaSeleccionada'),
                 ),
               ),
@@ -365,6 +376,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         cantidad: cantidad,
                       ));
                     },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black, // Fondo del botón
+                      foregroundColor: Colors.white,
+                    ),
                     child: Text(botonDeshabilitado ? 'Sin stock disponible' : 'Añadir al carrito'),
                   ),
                 ),

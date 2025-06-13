@@ -116,15 +116,18 @@ class _FavoritosScreenState extends State<FavoritosScreen> with TickerProviderSt
 
     return SafeArea(
       child: Scaffold(
+        backgroundColor: Colors.white,
         body: Stack(
           children: [
             SingleChildScrollView(
               padding: const EdgeInsets.only(bottom: 12),
               child: Column(
+
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Título y botón eliminar en fila fija con altura
                   SizedBox(
+
                     height: 70,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -198,12 +201,14 @@ class _FavoritosScreenState extends State<FavoritosScreen> with TickerProviderSt
 
                   // Lista favoritos o mensaje vacío
                   Container(
+                    color: Colors.white,
                     constraints: BoxConstraints(
                       maxHeight: screenHeight * 0.45,
                     ),
                     child: _items.isEmpty
                         ? const Center(
                       child: Padding(
+
                         padding: EdgeInsets.all(20.0),
                         child: Text('No has seleccionado ningún favorito', style: TextStyle(fontSize: 18)),
                       ),
@@ -229,8 +234,10 @@ class _FavoritosScreenState extends State<FavoritosScreen> with TickerProviderSt
                   // Sugerencias y carrusel con corazón para favoritos
                   if (_sugerencias != null && _sugerencias!.isNotEmpty && !_sinInternet) ...[
                     const Padding(
+
                       padding: EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Text(
+                      child:
+                      Text(
                         'Sugerencias para ti',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
@@ -238,8 +245,10 @@ class _FavoritosScreenState extends State<FavoritosScreen> with TickerProviderSt
                     ),
                     const SizedBox(height: 8),
                     SizedBox(
+
                       height: carouselHeight,
                       child: PageView.builder(
+
                         controller: _pageController,
                         itemCount: _sugerencias!.length,
                         onPageChanged: (i) => setState(() => _currentCarousel = i),
@@ -249,6 +258,7 @@ class _FavoritosScreenState extends State<FavoritosScreen> with TickerProviderSt
                           return SlideFadeInFromBottom(
                             delay: Duration(milliseconds: 100 * (i + 1)),
                             child: Stack(
+
                               children: [
                                 GestureDetector(
                                   onTap: () {
@@ -274,6 +284,7 @@ class _FavoritosScreenState extends State<FavoritosScreen> with TickerProviderSt
                                     ),
                                     alignment: Alignment.bottomCenter,
                                     child: Container(
+                                     // color: Colors.white,
                                       width: double.infinity,
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(

@@ -275,6 +275,7 @@ class _InicioContentState extends State<InicioContent> {
                   return SlideFadeInFromBottom(
                     delay: Duration(milliseconds: 100 * i),
                     child: Material(
+                      color: Colors.white,
                       elevation: 3,
                       borderRadius: BorderRadius.circular(12),
                       child: InkWell(
@@ -320,12 +321,17 @@ class _InicioContentState extends State<InicioContent> {
                               ),
                             ),
                             Padding(
+
                               padding: const EdgeInsets.all(6),
                               child: Text(
                                 p.nombre,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                     backgroundColor: Colors.white,
+                                     color: Colors.black,
+                                ),
                               ),
                             ),
                             Padding(

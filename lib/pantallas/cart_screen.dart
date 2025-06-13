@@ -46,48 +46,63 @@ class _CartScreen extends State<CartScreen> {
       children: [
         AnimatedPageWrapper(
           child: Scaffold(
-            backgroundColor: kBackgroundColor,
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              backgroundColor: kBackgroundColor,
-              elevation: 0,
-              iconTheme: const IconThemeData(color: Colors.black),
-              actions: [
-                SizedBox(
-                  height: 40,
-                  width: 40,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      if (itemCount > 0)
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              '$itemCount',
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 12),
+            backgroundColor: Colors.white,
+
+            /*appBar: PreferredSize(
+              preferredSize: const Size.fromHeight(kToolbarHeight + 20),
+              child: AppBar(
+                automaticallyImplyLeading: false,
+                backgroundColor: kBackgroundColor,
+                elevation: 0,
+                iconTheme: const IconThemeData(color: Colors.black),
+                actions: [
+                  SizedBox(
+                    height: 60, // más alto que el estándar 40
+                    width: 40,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Icon(
+                          Icons.shopping_cart,
+                          size: 30,
+                          color: Colors.black,
+                        ),
+                        if (itemCount > 0)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '$itemCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ),*/
+
+
             body: SafeArea(
               child: LayoutBuilder(
+
                 builder: (context, constraints) {
                   bool isWide = constraints.maxWidth > 600;
 
                   return Column(
                     children: [
+
                       Expanded(
                         child: cart.items.isEmpty
                             ? const Center(
@@ -111,6 +126,7 @@ class _CartScreen extends State<CartScreen> {
                               const Duration(milliseconds: 500),
                               curve: Curves.easeOutBack,
                               child: Card(
+                                color: Colors.white,
                                 margin: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 8),
                                 shape: RoundedRectangleBorder(
@@ -137,6 +153,7 @@ class _CartScreen extends State<CartScreen> {
                           padding: const EdgeInsets.all(16),
                           child: isWide
                               ? Row(
+
                             mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,

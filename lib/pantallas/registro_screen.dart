@@ -119,7 +119,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
 
     return AnimatedPageWrapper(
       child: Scaffold(
-        backgroundColor: Colors.grey[200],
+        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('Registrarse', style: TextStyle(color: Colors.black)),
           backgroundColor: Colors.white,

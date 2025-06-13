@@ -125,8 +125,13 @@ class _PagoScreenState extends State<PagoScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pago')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+          backgroundColor: Colors.white,
+          title: const Text('Pago')
+      ),
       body: SafeArea(
+
         child: LayoutBuilder(
           builder: (context, constraints) {
             final isSmallWidth = constraints.maxWidth < 600;
@@ -144,7 +149,7 @@ class _PagoScreenState extends State<PagoScreen> {
                   Text('Resumen de productos:', style: Theme.of(context).textTheme.titleMedium),
                   SizedBox(height: isSmallWidth ? 6 : 8),
                   SizedBox(
-                    height: listHeight,
+
                     child: ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),

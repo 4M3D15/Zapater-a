@@ -63,7 +63,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDFDF8), // fondo crema
+      backgroundColor: const Color(0xFFFFFFFF), // fondo crema
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -74,7 +74,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 SlideTransition(
                   position: _titleSlide,
                   child: const Text(
-                    'Bienvenido a Zapato',
+                    'Bienvenido a Soleya',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 32,

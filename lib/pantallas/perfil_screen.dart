@@ -182,7 +182,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         AnimatedPageWrapper(
           child: Scaffold(
-            backgroundColor: const Color(0xFFFDFDF8),
+            backgroundColor: Colors.white,
             appBar: AppBar(
               automaticallyImplyLeading: false,
               backgroundColor: Colors.transparent,
@@ -271,12 +271,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           SizedBox(height: verticalSpacing * 2),
                           ElevatedButton.icon(
                             onPressed: _isLoading ? null : _updateProfile,
-                            icon: const Icon(Icons.save),
-                            label: Text('Guardar Cambios', style: TextStyle(fontSize: fontSizeButtons.clamp(14, 18))),
+                            icon: const Icon(Icons.save, color: Colors.white),
+                            label: Text('Guardar Cambios',
+                                style: TextStyle(
+                                fontSize: fontSizeButtons.clamp(14, 18),
+                                  color: Colors.white, // Texto blanco
+                                )
+                            ),
                             style: ElevatedButton.styleFrom(
                               padding: EdgeInsets.symmetric(vertical: buttonHeight * 0.35),
-                              backgroundColor: const Color(0xF8F8F2FF),
-                              foregroundColor: Colors.black,
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
                           ),

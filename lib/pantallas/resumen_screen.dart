@@ -20,7 +20,9 @@ class ResumenScreen extends StatelessWidget {
     final padding = size.width * 0.05; // 5% padding
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text('Resumen del Pedido'),
         automaticallyImplyLeading: false,
       ),

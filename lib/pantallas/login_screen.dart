@@ -134,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return AnimatedPageWrapper(
       child: Scaffold(
-        backgroundColor: const Color(0xFFFDFDF8),
+        backgroundColor: const Color(0xFFFFFFFF),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -221,7 +221,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               height: 20,
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
-                                : const Text('Iniciar Sesión', style: TextStyle(fontSize: 18)),
+                                : const Text('Iniciar Sesión',
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.white,
+                                ),
+                            ),
                           ),
                         ),
                       ),
