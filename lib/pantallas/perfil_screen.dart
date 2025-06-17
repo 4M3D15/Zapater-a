@@ -13,12 +13,21 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
-class UpperCaseTextFormatter extends TextInputFormatter {
+/// Este formateador permite solo letras, espacios y tildes, y convierte todo a mayúsculas
+class LettersOnlyTextFormatter extends TextInputFormatter {
+  final RegExp _regExp = RegExp(r'[A-ZÁÉÍÓÚÜÑ ]'); // Letras en mayúsculas, tildes y espacio
+
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    return newValue.copyWith(
-      text: newValue.text.toUpperCase(),
-      selection: newValue.selection,
+    final filtered = newValue.text
+        .toUpperCase()
+        .split('')
+        .where((char) => _regExp.hasMatch(char))
+        .join();
+
+    return TextEditingValue(
+      text: filtered,
+      selection: TextSelection.collapsed(offset: filtered.length),
     );
   }
 }
@@ -45,6 +54,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _sinInternet = false;
 
+  get data => null;
+
   @override
   void initState() {
     super.initState();
@@ -61,25 +72,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  String capitalize(String value) {
-    if (value.isEmpty) return value;
-    return value[0].toUpperCase() + value.substring(1).toLowerCase();
-  }
-
   Future<void> _loadUserData() async {
     try {
       _user = _auth.currentUser!;
       if (_sinInternet) {
         final usuario = await operaciones_db().getUsuario();
-        _nameController.text = capitalize(usuario['nombre'] ?? '');
-        _lastNameController.text = capitalize(usuario['apellido'] ?? '');
+        _nameController.text = data['nombre'] ?? '';
+        _lastNameController.text = data['apellido'] ?? '';
         _avatarFile = usuario['avatar'] != null && usuario['avatar'] != "" ? File(usuario['avatar']) : null;
       } else {
         final doc = await _firestore.collection('usuarios').doc(_user.uid).get();
         final data = doc.data();
         if (data != null) {
-          _nameController.text = capitalize(data['nombre'] ?? '');
-          _lastNameController.text = capitalize(data['apellido'] ?? '');
+          _nameController.text = data['nombre'] ?? '';
+          _lastNameController.text = data['apellido'] ?? '';
           _avatarFile = data['avatar'] != null && data['avatar'] != "" ? File(data['avatar']) : null;
         }
       }
@@ -124,8 +130,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _updateProfile() async {
     setState(() => _isLoading = true);
     try {
-      final nombre = capitalize(_nameController.text.trim());
-      final apellido = capitalize(_lastNameController.text.trim());
+      final nombre = _nameController.text.trim();
+      final apellido = _lastNameController.text.trim();
 
       final updateData = {
         'nombre': nombre,
@@ -134,7 +140,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       };
 
       await operaciones_db().actualizarUsuario(updateData);
-
       await _firestore.collection('usuarios').doc(_user.uid).update(updateData);
       await _user.updateDisplayName(nombre);
 
@@ -198,7 +203,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   final avatarRadius = constraints.maxWidth * 0.15;
                   final horizontalPadding = constraints.maxWidth * 0.06;
                   final verticalSpacing = constraints.maxHeight * 0.025;
-
                   final buttonHeight = constraints.maxHeight * 0.07;
                   final fontSizeInput = constraints.maxWidth * 0.045;
                   final fontSizeButtons = constraints.maxWidth * 0.045;
@@ -232,7 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           SizedBox(height: verticalSpacing * 1.5),
                           TextField(
                             controller: _nameController,
-                            inputFormatters: [UpperCaseTextFormatter()],
+                            inputFormatters: [LettersOnlyTextFormatter()],
                             style: TextStyle(fontSize: fontSizeInput.clamp(14, 18)),
                             decoration: InputDecoration(
                               labelText: 'Nombre',
@@ -245,7 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           SizedBox(height: verticalSpacing),
                           TextField(
                             controller: _lastNameController,
-                            inputFormatters: [UpperCaseTextFormatter()],
+                            inputFormatters: [LettersOnlyTextFormatter()],
                             style: TextStyle(fontSize: fontSizeInput.clamp(14, 18)),
                             decoration: InputDecoration(
                               labelText: 'Apellido',
@@ -274,10 +278,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             icon: const Icon(Icons.save, color: Colors.white),
                             label: Text('Guardar Cambios',
                                 style: TextStyle(
-                                fontSize: fontSizeButtons.clamp(14, 18),
-                                  color: Colors.white, // Texto blanco
-                                )
-                            ),
+                                  fontSize: fontSizeButtons.clamp(14, 18),
+                                  color: Colors.white,
+                                )),
                             style: ElevatedButton.styleFrom(
                               padding: EdgeInsets.symmetric(vertical: buttonHeight * 0.35),
                               backgroundColor: Colors.black,

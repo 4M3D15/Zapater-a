@@ -15,12 +15,30 @@ class CartProvider with ChangeNotifier {
     _items = await operaciones_db().getCarrito();
     notifyListeners();
   }
-  void addToCart(CartItem item) {
+  void addToCart(CartItem item) async {
     final index = _items.indexWhere(
             (element) => element.id == item.id && element.talla == item.talla);
+
+    // Obtén el stock disponible real desde Firestore (puedes cachearlo para optimizar)
+    final stockDisponible = await getStockDisponible(item.id, item.talla);
+
+    int cantidadActualEnCarrito = 0;
     if (index >= 0) {
-      operaciones_db().actualizarCantidad(item, _items[index].cantidad + item.cantidad);
-      _items[index].cantidad += item.cantidad;
+      cantidadActualEnCarrito = _items[index].cantidad;
+    }
+
+    final nuevaCantidadTotal = cantidadActualEnCarrito + item.cantidad;
+
+    if (nuevaCantidadTotal > stockDisponible) {
+      // No permitas agregar más que el stock disponible
+      // Puedes mostrar un mensaje, o simplemente limitar
+      print('No hay suficiente stock para agregar esa cantidad.');
+      return;
+    }
+
+    if (index >= 0) {
+      operaciones_db().actualizarCantidad(item, nuevaCantidadTotal);
+      _items[index].cantidad = nuevaCantidadTotal;
     } else {
       operaciones_db().addProducto(item);
       _items.add(item);

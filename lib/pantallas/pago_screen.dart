@@ -250,12 +250,40 @@ class _PagoScreenState extends State<PagoScreen> {
                             _FechaExpiracionFormatter(),
                           ],
                           validator: (value) {
-                            if (value == null || value.length != 5 || !RegExp(r'^\d{2}/\d{2}$').hasMatch(value)) {
-                              return 'Fecha de expiración inválida';
+                            if (value == null || value.length != 5) {
+                              return 'Usa el formato MM/AA';
                             }
-                            int mes = int.tryParse(value.substring(0, 2)) ?? 0;
-                            if (mes < 1 || mes > 12) return 'Mes inválido';
-                            return null;
+
+                            // Usamos una expresión regular para asegurar el formato y un mes válido (01-12)
+                            if (!RegExp(r'^(0[1-9]|1[0-2])\/\d{2}$').hasMatch(value)) {
+                              return 'Fecha inválida. El mes debe ser entre 01 y 12.';
+                            }
+
+                            final parts = value.split('/');
+                            final month = int.tryParse(parts[0]);
+                            final year = int.tryParse(parts[1]);
+
+                            if (month == null || year == null) {
+                              return 'Fecha inválida'; // Seguridad extra
+                            }
+
+                            final currentDate = DateTime.now();
+                            // Obtenemos los últimos dos dígitos del año actual (ej: 25 para 2025)
+                            final currentYearLastTwoDigits = currentDate.year % 100;
+                            final currentMonth = currentDate.month;
+
+                            // Comparamos con la fecha actual
+                            // Si el año de la tarjeta es menor que el año actual
+                            if (year < currentYearLastTwoDigits) {
+                              return 'La tarjeta ha caducado';
+                            }
+
+                            // Si el año es el mismo, pero el mes es anterior al actual
+                            if (year == currentYearLastTwoDigits && month < currentMonth) {
+                              return 'La tarjeta ha caducado';
+                            }
+
+                            return null; // La fecha es válida
                           },
                         ),
                         SizedBox(height: isSmallWidth ? 10 : 12),

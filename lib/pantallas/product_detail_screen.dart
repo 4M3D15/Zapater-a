@@ -102,9 +102,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               onSelected: (_) {
                 setState(() {
                   tallaSeleccionada = talla;
-                  cantidad = min(1, stock);
+                  // Conservar cantidad si está dentro del nuevo stock
+                  final nuevoStock = tallasStock[talla] ?? 0;
+                  if (cantidad > nuevoStock) {
+                    cantidad = nuevoStock;
+                  } else if (cantidad < 1) {
+                    cantidad = 1;
+                  }
+                  Navigator.pop(context);
                 });
-                Navigator.pop(context);
+
               },
             );
           }).toList(),
@@ -367,6 +374,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     onPressed: botonDeshabilitado
                         ? null
                         : () {
+                      final stockDisponible = tallasStock[tallaSeleccionada] ?? 0;
+                      if (cantidad > stockDisponible) {
+                        // Mostrar alerta o limitar cantidad
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('No hay suficiente stock disponible')),
+                        );
+                        setState(() {
+                          cantidad = stockDisponible; // Opcional: ajustar cantidad automáticamente
+                        });
+                        return;
+                      }
                       cartProv.addToCart(CartItem(
                         id: producto.id,
                         nombre: producto.nombre,
@@ -376,6 +394,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         cantidad: cantidad,
                       ));
                     },
+
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black, // Fondo del botón
                       foregroundColor: Colors.white,
